@@ -1,6 +1,6 @@
 # mapper-studio
 
-Starter Mapping Studio (OBE) using:
+Starter Mapping Studio using:
 
 - Backend: Spring Boot + ConvEngine
 - Frontend: React + Vite + React Flow
