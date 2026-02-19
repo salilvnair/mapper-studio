@@ -8,6 +8,9 @@ const STAGE_META: Record<string, StageMeta> = {
   USER_INPUT: { icon: '🗣️', color: 'border-sky-500' },
   PIPELINE_TIMING: { icon: '⏱️', color: 'border-slate-500' },
   RESOLVE_RESPONSE: { icon: '🧠', color: 'border-emerald-500' },
+  RESOLVE_RESPONSE_SELECTED: { icon: '🧭', color: 'border-emerald-500' },
+  RESOLVE_RESPONSE_LLM_INPUT: { icon: '📥', color: 'border-cyan-500' },
+  RESOLVE_RESPONSE_LLM_OUTPUT: { icon: '📤', color: 'border-teal-500' },
   RESPONSE_EXACT: { icon: '📝', color: 'border-emerald-500' },
   INTENT_RESOLVE_START: { icon: '🧭', color: 'border-indigo-500' },
   INTENT_CLASSIFICATION_MATCHED: { icon: '🎯', color: 'border-indigo-600' },
@@ -45,7 +48,8 @@ const STAGE_META: Record<string, StageMeta> = {
   STEP_ERROR: { icon: '🪜🚫', color: 'border-rose-600' },
   ENGINE_RETURN: { icon: '🏆', color: 'border-lime-600' },
   ENGINE_KNOWN_FAILURE: { icon: '🙈', color: 'border-red-500' },
-  ENGINE_UNKNOWN_FAILURE: { icon: '💀', color: 'border-red-700' }
+  ENGINE_UNKNOWN_FAILURE: { icon: '💀', color: 'border-red-700' },
+  CLIENT_ERROR: { icon: '🚨', color: 'border-red-600' }
 }
 
 function stageLookupKey(stage: string | undefined): string {

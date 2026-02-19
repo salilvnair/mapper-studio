@@ -1,5 +1,7 @@
 package com.salilvnair.mapperstudio.service.studio;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.salilvnair.mapperstudio.api.dto.StudioMessageRequest;
 import com.salilvnair.mapperstudio.api.dto.StudioMessageResponse;
 import com.github.salilvnair.convengine.engine.context.EngineContext;
@@ -21,6 +23,7 @@ import java.util.UUID;
 public class StudioConversationService {
 
     private final ConversationalEngine engine;
+    private final ObjectMapper objectMapper;
 
     public StudioMessageResponse process(StudioMessageRequest request) {
         String conversationId = request.conversationId() == null || request.conversationId().isBlank()
@@ -39,8 +42,12 @@ public class StudioConversationService {
                 .inputParams(inputParams)
                 .build();
 
-        EngineResult result = engine.process(context);
-        return toResponse(conversationId, result);
+        try {
+            EngineResult result = engine.process(context);
+            return toResponse(conversationId, result);
+        } catch (Exception ex) {
+            return errorResponse(conversationId, ex);
+        }
     }
 
     private StudioMessageResponse toResponse(String conversationId, EngineResult result) {
@@ -63,5 +70,33 @@ public class StudioConversationService {
                 payloadValue,
                 result.contextJson()
         );
+    }
+
+    private StudioMessageResponse errorResponse(String conversationId, Exception ex) {
+        String message = ex.getMessage() == null || ex.getMessage().isBlank()
+                ? "Failed to process your request."
+                : ex.getMessage();
+        Map<String, Object> ctx = new LinkedHashMap<>();
+        ctx.put("error", true);
+        ctx.put("errorType", ex.getClass().getSimpleName());
+        ctx.put("errorMessage", message);
+        ctx.put("publish_status", "FAILED");
+
+        return new StudioMessageResponse(
+                conversationId,
+                StudioSessionKeys.MODE_MAPPING_STUDIO,
+                "ERROR",
+                "TEXT",
+                "Request could not be completed: " + message,
+                toJson(ctx)
+        );
+    }
+
+    private String toJson(Map<String, Object> payload) {
+        try {
+            return objectMapper.writeValueAsString(payload);
+        } catch (JsonProcessingException ignored) {
+            return "{\"error\":true}";
+        }
     }
 }

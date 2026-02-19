@@ -43,11 +43,14 @@ public class MappingStudioPersistenceService {
     }
 
     public void publish(EngineSession session) {
-        if (!StudioSessionKeys.STATE_AWAITING_CONFIRMATION.equalsIgnoreCase(String.valueOf(session.getState()))) {
+        String state = String.valueOf(session.getState());
+        boolean publishAllowed = StudioSessionKeys.STATE_AWAITING_CONFIRMATION.equalsIgnoreCase(state)
+                || StudioSessionKeys.STATE_PUBLISHED.equalsIgnoreCase(state);
+        if (!publishAllowed) {
             session.putInputParam(StudioSessionKeys.PUBLISH_STATUS, StudioSessionKeys.STATUS_SKIPPED);
             session.putInputParam(StudioSessionKeys.PUBLISH_RESULT, Map.of(
                     "skipped", true,
-                    "reason", "Publish allowed only from AWAITING_CONFIRMATION"
+                    "reason", "Publish allowed only from AWAITING_CONFIRMATION or PUBLISHED"
             ));
             return;
         }

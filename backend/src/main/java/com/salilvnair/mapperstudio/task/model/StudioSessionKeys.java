@@ -42,6 +42,7 @@ public final class StudioSessionKeys {
     public static final String STATUS_SKIPPED = "SKIPPED";
 
     public static final String STATE_AWAITING_CONFIRMATION = "AWAITING_CONFIRMATION";
+    public static final String STATE_PUBLISHED = "PUBLISHED";
 
     public static final String DEFAULT_PROJECT_CODE = "MAPPER_DEMO_PROJECT";
     public static final String DEFAULT_MAPPING_VERSION = "1.0.0";

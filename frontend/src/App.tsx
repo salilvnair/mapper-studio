@@ -71,6 +71,13 @@ type SchemaArtifact = {
 
 type ThemeMode = 'light' | 'dark'
 type ViewMode = 'studio' | 'settings'
+type ChatRole = 'user' | 'assistant'
+
+type ChatBubble = {
+  id: string
+  role: ChatRole
+  text: string
+}
 
 function formatSmallContent(content: string, language: 'json' | 'xml'): string {
   const trimmed = content.trim()
@@ -160,6 +167,26 @@ function downloadBlob(blob: Blob, fileName: string) {
   URL.revokeObjectURL(url)
 }
 
+function isGenerateExcelCommand(message: string): boolean {
+  const normalized = message.trim().toLowerCase().replace(/\s+/g, ' ')
+  return normalized === 'generate excel'
+    || normalized === 'download excel'
+    || normalized === 'export excel'
+    || normalized === 'generate xlsx'
+    || normalized === 'download xlsx'
+    || normalized === 'export xlsx'
+}
+
+function stringifyPayload(payload: unknown): string {
+  if (payload == null) return ''
+  if (typeof payload === 'string') return payload
+  try {
+    return JSON.stringify(payload, null, 2)
+  } catch {
+    return String(payload)
+  }
+}
+
 export default function App() {
   const [projectCode, setProjectCode] = useState(defaultProjectCode)
   const [mappingVersion, setMappingVersion] = useState(defaultMappingVersion)
@@ -180,6 +207,7 @@ export default function App() {
   const [targetWsdlAttached, setTargetWsdlAttached] = useState(false)
   const [conversationId, setConversationId] = useState<string | undefined>(undefined)
   const [chatMessage, setChatMessage] = useState('')
+  const [chatBubbles, setChatBubbles] = useState<ChatBubble[]>([])
   const [response, setResponse] = useState<StudioResponse | null>(null)
   const [loading, setLoading] = useState(false)
   const [savingMappings, setSavingMappings] = useState(false)
@@ -411,12 +439,13 @@ export default function App() {
     }
   }
 
-  async function onSaveAndDownloadMappings() {
+  async function onSaveAndDownloadMappings(options?: { forceConfirm?: boolean }) {
+    const forceConfirm = options?.forceConfirm === true
     if (editableMappings.length === 0) {
       notifyError('No mappings available to export.')
       return
     }
-    if (!manualConfirmed) {
+    if (!forceConfirm && !manualConfirmed) {
       notifyError('Manual confirmation is required before export.', 'Check the confirmation box in Mappings and try again.', 'Confirm')
       return
     }
@@ -429,12 +458,37 @@ export default function App() {
       const fileName = `${payload.projectCode}_${payload.mappingVersion}_mappings.xlsx`
       downloadBlob(blob, fileName)
       notifySuccess('Mappings confirmed, saved, and XLSX downloaded', fileName)
+      return true
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to export mappings'
       notifyError(msg, 'Export failed. Ensure manual confirmation exists and backend is reachable.', 'Export')
+      return false
     } finally {
       setSavingMappings(false)
     }
+  }
+
+  function appendBubble(role: ChatRole, text: string) {
+    const content = text.trim()
+    if (!content) return
+    setChatBubbles((prev) => [...prev, { id: `${Date.now()}-${prev.length}`, role, text: content }])
+  }
+
+  function appendAuditError(stage: string, message: string, convId?: string) {
+    const payload = JSON.stringify({
+      error: true,
+      message,
+      source: 'mapper-studio-ui'
+    })
+    setAuditEvents((prev) => [
+      ...prev,
+      {
+        conversationId: convId || conversationId,
+        stage,
+        payloadJson: payload,
+        createdAt: new Date().toISOString()
+      }
+    ])
   }
 
   async function runStudioTurn(message: string, e?: FormEvent, reuseConversation: boolean = true) {
@@ -464,11 +518,13 @@ export default function App() {
     const convId = reuseConversation ? conversationId : undefined
     if (!reuseConversation) {
       setResponse(null)
+      setChatBubbles([])
       setStableSuggestions([])
       setEditableMappings([])
       setManualConfirmed(false)
       suggestionsSignatureRef.current = '[]'
     }
+    appendBubble('user', message)
     try {
       const res = await sendStudioMessage(message, convId, {
         source_payload_type: sourceType === 'XML' ? 'XML' : 'JSON',
@@ -490,6 +546,7 @@ export default function App() {
       })
       setConversationId(res.conversationId)
       setResponse(res)
+      appendBubble('assistant', stringifyPayload(res.payload))
       setChatMessage('')
       try {
         const events = await fetchConversationAudit(res.conversationId)
@@ -497,7 +554,14 @@ export default function App() {
       } catch {
         // ignore audit fetch error on initial render; polling effect will retry.
       }
-      notifySuccess('Response received')
+      if (res.state === 'ERROR') {
+        const msg = stringifyPayload(res.payload) || 'Request failed'
+        setError(msg)
+        notifyError(msg, 'Backend handled the failure gracefully. Check audit timeline for details.', 'Backend')
+        appendAuditError('ENGINE_KNOWN_FAILURE', msg, res.conversationId)
+      } else {
+        notifySuccess('Response received')
+      }
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Unknown error'
       const normalized = msg.toLowerCase().includes('failed to fetch') ? 'Failed to fetch' : msg
@@ -507,6 +571,7 @@ export default function App() {
         ? 'Cannot reach backend endpoint. Check server status, API URL, and CORS/network access.'
         : 'Request failed at backend processing. Check logs and validate input artifacts/schema.'
       notifyError(normalized, detail, infoChip)
+      appendAuditError('CLIENT_ERROR', normalized, convId)
     } finally {
       setLoading(false)
     }
@@ -521,6 +586,15 @@ export default function App() {
     if (!msg) {
       setError('Please enter a message to send.')
       notifyError('Please enter a message to send.')
+      return
+    }
+    setChatMessage('')
+    if (isGenerateExcelCommand(msg)) {
+      appendBubble('user', msg)
+      const exported = await onSaveAndDownloadMappings({ forceConfirm: true })
+      if (exported) {
+        appendBubble('assistant', 'XLSX generated and downloaded.')
+      }
       return
     }
     await runStudioTurn(msg)
@@ -1115,20 +1189,66 @@ export default function App() {
           </div>
 
           <div className="studio-chat-row">
-            <div className="studio-chat-compose">
-              <textarea
-                className="studio-chat-textarea"
-                value={chatMessage}
-                onChange={(e) => setChatMessage(e.target.value)}
-                placeholder="Type a message to send to ConvEngine..."
-                disabled={loading}
-                rows={3}
-              />
-              <button type="button" className="studio-chat-send" onClick={onSendMessage} disabled={loading || !chatMessage.trim()} title="Send">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                  <path d="M3 20L21 12L3 4L3 10L15 12L3 14L3 20Z" fill="currentColor" />
-                </svg>
-              </button>
+            <div className="studio-chat-card">
+              <div className="studio-chat-thread">
+              {chatBubbles.length === 0 ? (
+                <div className="studio-chat-empty">No messages yet.</div>
+              ) : (
+                chatBubbles.map((bubble) => (
+                    <div
+                      key={bubble.id}
+                      className={`studio-chat-bubble ${bubble.role === 'user' ? 'studio-chat-bubble-user' : 'studio-chat-bubble-assistant'}`}
+                    >
+                      <div className="studio-chat-bubble-role">
+                        <span className={`studio-chat-bubble-icon ${bubble.role === 'user' ? 'studio-chat-bubble-icon-user' : 'studio-chat-bubble-icon-assistant'}`} aria-hidden="true">
+                          {bubble.role === 'user' ? (
+                            <svg viewBox="0 0 24 24" fill="none">
+                              <path d="M12 12C14.2 12 16 10.2 16 8C16 5.8 14.2 4 12 4C9.8 4 8 5.8 8 8C8 10.2 9.8 12 12 12Z" fill="currentColor" />
+                              <path d="M4 20C4.5 16.8 7 15 12 15C17 15 19.5 16.8 20 20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                            </svg>
+                          ) : (
+                            <svg viewBox="0 0 24 24" fill="none">
+                              <rect x="5" y="4" width="14" height="16" rx="3" stroke="currentColor" strokeWidth="2" />
+                              <circle cx="9" cy="10" r="1.2" fill="currentColor" />
+                              <circle cx="15" cy="10" r="1.2" fill="currentColor" />
+                              <path d="M9 14.5H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                            </svg>
+                          )}
+                        </span>
+                        <span>{bubble.role === 'user' ? 'You' : 'Mapper Studio Agent'}</span>
+                      </div>
+                      <pre className="studio-chat-bubble-text">{bubble.text}</pre>
+                    </div>
+                ))
+              )}
+              {loading && (
+                <div className="studio-chat-bubble studio-chat-bubble-assistant studio-chat-thinking" aria-live="polite">
+                  <div className="studio-chat-thinking-text">
+                    Agent is thinking
+                    <span className="studio-thinking-dots" aria-hidden="true">
+                      <span />
+                      <span />
+                      <span />
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+              <div className="studio-chat-compose">
+                <textarea
+                  className="studio-chat-textarea"
+                  value={chatMessage}
+                  onChange={(e) => setChatMessage(e.target.value)}
+                  placeholder="Type a message to send to ConvEngine..."
+                  disabled={loading}
+                  rows={3}
+                />
+                <button type="button" className="studio-chat-send" onClick={onSendMessage} disabled={loading || !chatMessage.trim()} title="Send">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M3 20L21 12L3 4L3 10L15 12L3 14L3 20Z" fill="currentColor" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
         </form>

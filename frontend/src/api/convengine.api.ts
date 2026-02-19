@@ -17,6 +17,25 @@ export type DbStatusResponse = {
   checkedAt: string
 }
 
+async function readApiError(res: Response, fallback: string): Promise<string> {
+  try {
+    const data = await res.json() as Record<string, unknown>
+    const message = typeof data?.message === 'string'
+      ? data.message
+      : typeof data?.error === 'string'
+        ? data.error
+        : ''
+    return message || `${fallback}: ${res.status}`
+  } catch {
+    try {
+      const txt = await res.text()
+      return txt || `${fallback}: ${res.status}`
+    } catch {
+      return `${fallback}: ${res.status}`
+    }
+  }
+}
+
 export async function sendStudioMessage(
   message: string,
   conversationId?: string,
@@ -28,7 +47,7 @@ export async function sendStudioMessage(
     body: JSON.stringify({ conversationId, message, inputParams })
   })
   if (!res.ok) {
-    throw new Error(`Studio backend error: ${res.status}`)
+    throw new Error(await readApiError(res, 'Studio backend error'))
   }
   return res.json()
 }
@@ -40,7 +59,7 @@ export async function saveMappings(request: MappingExportRequest): Promise<Mappi
     body: JSON.stringify(request)
   })
   if (!res.ok) {
-    throw new Error(`Save mappings failed: ${res.status}`)
+    throw new Error(await readApiError(res, 'Save mappings failed'))
   }
   return res.json()
 }
@@ -52,7 +71,7 @@ export async function confirmMappings(request: MappingExportRequest): Promise<Ma
     body: JSON.stringify(request)
   })
   if (!res.ok) {
-    throw new Error(`Confirm mappings failed: ${res.status}`)
+    throw new Error(await readApiError(res, 'Confirm mappings failed'))
   }
   return res.json()
 }
@@ -64,7 +83,7 @@ export async function exportMappingsXlsx(request: MappingExportRequest): Promise
     body: JSON.stringify(request)
   })
   if (!res.ok) {
-    throw new Error(`Export mappings failed: ${res.status}`)
+    throw new Error(await readApiError(res, 'Export mappings failed'))
   }
   return res.blob()
 }
@@ -72,7 +91,7 @@ export async function exportMappingsXlsx(request: MappingExportRequest): Promise
 export async function fetchConversationAudit(conversationId: string): Promise<AuditEvent[]> {
   const res = await fetch(`${CONVENGINE_BASE}/audit/${conversationId}`)
   if (!res.ok) {
-    throw new Error(`Audit API error: ${res.status}`)
+    throw new Error(await readApiError(res, 'Audit API error'))
   }
   const data = await res.json()
   return Array.isArray(data) ? (data as AuditEvent[]) : []
@@ -81,7 +100,7 @@ export async function fetchConversationAudit(conversationId: string): Promise<Au
 export async function fetchDbStatus(): Promise<DbStatusResponse> {
   const res = await fetch(`${STUDIO_BASE}/admin/db/status`)
   if (!res.ok) {
-    throw new Error(`DB status API error: ${res.status}`)
+    throw new Error(await readApiError(res, 'DB status API error'))
   }
   return res.json() as Promise<DbStatusResponse>
 }
@@ -89,6 +108,6 @@ export async function fetchDbStatus(): Promise<DbStatusResponse> {
 export async function initializeDb(): Promise<void> {
   const res = await fetch(`${STUDIO_BASE}/admin/db/init`, { method: 'POST' })
   if (!res.ok) {
-    throw new Error(`DB init API error: ${res.status}`)
+    throw new Error(await readApiError(res, 'DB init API error'))
   }
 }
