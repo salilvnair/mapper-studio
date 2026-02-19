@@ -1,0 +1,4 @@
+http://localhost:8081/api/studio/admin/db/init
+
+###
+GET http://localhost:8081/api/studio/admin/db/status

@@ -1,0 +1,17 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://example.com/azure/energy/billing"
+            xmlns:tns="http://example.com/azure/energy/billing"
+            elementFormDefault="qualified">
+  <xsd:element name="GenerateCustomerInvoiceRequest" type="tns:GenerateCustomerInvoiceRequestType"/>
+  <xsd:complexType name="GenerateCustomerInvoiceRequestType">
+    <xsd:sequence>
+      <xsd:element name="RetailProvider" type="xsd:string"/>
+      <xsd:element name="CustomerBillingId" type="xsd:string"/>
+      <xsd:element name="InvoicePeriod" type="xsd:string"/>
+      <xsd:element name="ConsumptionKwh" type="xsd:decimal"/>
+      <xsd:element name="EnergyChargeAmount" type="xsd:decimal"/>
+      <xsd:element name="TaxChargeAmount" type="xsd:decimal"/>
+      <xsd:element name="PaymentDueDate" type="xsd:date"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

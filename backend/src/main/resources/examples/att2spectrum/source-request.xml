@@ -1,0 +1,9 @@
+<CreateWirelessPortInRequest>
+  <ProviderCode>ATT</ProviderCode>
+  <CustomerId>ATT-CUST-93811</CustomerId>
+  <DonorCarrier>Verizon</DonorCarrier>
+  <PhoneNumber>+12145550191</PhoneNumber>
+  <SimType>ESIM</SimType>
+  <PlanName>UNLIMITED_PREMIUM</PlanName>
+  <RequestedDate>2026-03-15</RequestedDate>
+</CreateWirelessPortInRequest>

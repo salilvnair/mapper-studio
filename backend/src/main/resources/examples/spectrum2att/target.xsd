@@ -1,0 +1,17 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://example.com/azure/telecom/provisioning"
+            xmlns:tns="http://example.com/azure/telecom/provisioning"
+            elementFormDefault="qualified">
+  <xsd:element name="CreateBroadbandActivationRequest" type="tns:CreateBroadbandActivationRequestType"/>
+  <xsd:complexType name="CreateBroadbandActivationRequestType">
+    <xsd:sequence>
+      <xsd:element name="CarrierName" type="xsd:string"/>
+      <xsd:element name="SubscriberAccountId" type="xsd:string"/>
+      <xsd:element name="PostalCode" type="xsd:string"/>
+      <xsd:element name="OfferingSku" type="xsd:string"/>
+      <xsd:element name="Segment" type="xsd:string"/>
+      <xsd:element name="RequestedActivationDate" type="xsd:date"/>
+      <xsd:element name="AppointmentSlot" type="xsd:string"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

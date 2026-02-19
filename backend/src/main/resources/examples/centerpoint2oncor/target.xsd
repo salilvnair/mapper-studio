@@ -1,0 +1,17 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://example.com/azure/utility/outage"
+            xmlns:tns="http://example.com/azure/utility/outage"
+            elementFormDefault="qualified">
+  <xsd:element name="CreateDistributionOutageIncidentRequest" type="tns:CreateDistributionOutageIncidentRequestType"/>
+  <xsd:complexType name="CreateDistributionOutageIncidentRequestType">
+    <xsd:sequence>
+      <xsd:element name="GridOperatorCode" type="xsd:string"/>
+      <xsd:element name="IncidentId" type="xsd:string"/>
+      <xsd:element name="LineSegmentId" type="xsd:string"/>
+      <xsd:element name="ImpactedCustomerCount" type="xsd:int"/>
+      <xsd:element name="IncidentStartUtc" type="xsd:dateTime"/>
+      <xsd:element name="EstimatedResolutionUtc" type="xsd:dateTime"/>
+      <xsd:element name="FaultCategory" type="xsd:string"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

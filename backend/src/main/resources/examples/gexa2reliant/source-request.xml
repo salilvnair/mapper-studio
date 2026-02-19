@@ -1,0 +1,9 @@
+<EnrollRetailPowerCustomerRequest>
+  <ProviderCode>GEXA</ProviderCode>
+  <EnrollmentId>ENR-770091</EnrollmentId>
+  <EsiId>10443720008412879</EsiId>
+  <CustomerName>Nina Patel</CustomerName>
+  <ServiceZip>77002</ServiceZip>
+  <ProductCode>SAVER12</ProductCode>
+  <StartServiceDate>2026-04-01</StartServiceDate>
+</EnrollRetailPowerCustomerRequest>

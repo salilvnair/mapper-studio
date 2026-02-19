@@ -1,0 +1,17 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://example.com/azure/telecom/numbering"
+            xmlns:tns="http://example.com/azure/telecom/numbering"
+            elementFormDefault="qualified">
+  <xsd:element name="SubmitNumberPortRequest" type="tns:SubmitNumberPortRequestType"/>
+  <xsd:complexType name="SubmitNumberPortRequestType">
+    <xsd:sequence>
+      <xsd:element name="OperatorName" type="xsd:string"/>
+      <xsd:element name="SubscriberId" type="xsd:string"/>
+      <xsd:element name="CurrentCarrier" type="xsd:string"/>
+      <xsd:element name="Msisdn" type="xsd:string"/>
+      <xsd:element name="SimProfileType" type="xsd:string"/>
+      <xsd:element name="RatePlanCode" type="xsd:string"/>
+      <xsd:element name="PreferredPortDate" type="xsd:date"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

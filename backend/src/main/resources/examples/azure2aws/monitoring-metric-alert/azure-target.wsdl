@@ -1,0 +1,25 @@
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                  xmlns:tns="http://example.com/azure/monitor"
+                  targetNamespace="http://example.com/azure/monitor">
+  <wsdl:types>
+    <xsd:schema>
+      <xsd:import namespace="http://example.com/azure/monitor" schemaLocation="azure-monitor.xsd"/>
+    </xsd:schema>
+  </wsdl:types>
+
+  <wsdl:message name="CreateMetricAlertRuleInput">
+    <wsdl:part name="parameters" element="tns:CreateMetricAlertRuleRequest"/>
+  </wsdl:message>
+
+  <wsdl:portType name="AzureMonitorPortType">
+    <wsdl:operation name="CreateMetricAlertRule">
+      <wsdl:input message="tns:CreateMetricAlertRuleInput"/>
+    </wsdl:operation>
+  </wsdl:portType>
+
+  <wsdl:binding name="AzureMonitorBinding" type="tns:AzureMonitorPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+  </wsdl:binding>
+</wsdl:definitions>

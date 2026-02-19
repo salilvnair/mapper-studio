@@ -1,0 +1,9 @@
+<SubmitGridOutageEventRequest>
+  <UtilityCode>CENTERPOINT</UtilityCode>
+  <OutageEventId>OUT-884102</OutageEventId>
+  <FeederId>FD-7709-A</FeederId>
+  <AffectedCustomers>1843</AffectedCustomers>
+  <OutageStartTime>2026-02-18T08:45:00Z</OutageStartTime>
+  <EstimatedRestoreTime>2026-02-18T14:30:00Z</EstimatedRestoreTime>
+  <CauseCode>STORM_WIND</CauseCode>
+</SubmitGridOutageEventRequest>

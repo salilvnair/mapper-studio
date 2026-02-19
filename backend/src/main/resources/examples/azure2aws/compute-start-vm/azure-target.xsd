@@ -1,0 +1,16 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://example.com/azure/compute"
+            xmlns:tns="http://example.com/azure/compute"
+            elementFormDefault="qualified">
+  <xsd:element name="PowerOnVirtualMachineRequest" type="tns:PowerOnVirtualMachineRequestType"/>
+
+  <xsd:complexType name="PowerOnVirtualMachineRequestType">
+    <xsd:sequence>
+      <xsd:element name="SubscriptionGuid" type="xsd:string"/>
+      <xsd:element name="AzureRegion" type="xsd:string"/>
+      <xsd:element name="VirtualMachineName" type="xsd:string"/>
+      <xsd:element name="ValidateOnly" type="xsd:boolean"/>
+      <xsd:element name="RequestTrackingId" type="xsd:string"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

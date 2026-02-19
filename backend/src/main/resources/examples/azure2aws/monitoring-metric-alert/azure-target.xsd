@@ -1,0 +1,20 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://example.com/azure/monitor"
+            xmlns:tns="http://example.com/azure/monitor"
+            elementFormDefault="qualified">
+  <xsd:element name="CreateMetricAlertRuleRequest" type="tns:CreateMetricAlertRuleRequestType"/>
+
+  <xsd:complexType name="CreateMetricAlertRuleRequestType">
+    <xsd:sequence>
+      <xsd:element name="AlertRuleName" type="xsd:string"/>
+      <xsd:element name="MetricNamespace" type="xsd:string"/>
+      <xsd:element name="MetricName" type="xsd:string"/>
+      <xsd:element name="ThresholdValue" type="xsd:decimal"/>
+      <xsd:element name="Operator" type="xsd:string"/>
+      <xsd:element name="EvaluationWindowMinutes" type="xsd:int"/>
+      <xsd:element name="NumberOfEvaluations" type="xsd:int"/>
+      <xsd:element name="SeverityLevel" type="xsd:int"/>
+      <xsd:element name="ActionGroupResourceId" type="xsd:string"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

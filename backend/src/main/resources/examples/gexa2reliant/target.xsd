@@ -1,0 +1,17 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://example.com/azure/energy/enrollment"
+            xmlns:tns="http://example.com/azure/energy/enrollment"
+            elementFormDefault="qualified">
+  <xsd:element name="CreateUtilityEnrollmentRequest" type="tns:CreateUtilityEnrollmentRequestType"/>
+  <xsd:complexType name="CreateUtilityEnrollmentRequestType">
+    <xsd:sequence>
+      <xsd:element name="RetailProviderName" type="xsd:string"/>
+      <xsd:element name="EnrollmentReference" type="xsd:string"/>
+      <xsd:element name="PremiseIdentifier" type="xsd:string"/>
+      <xsd:element name="AccountHolderName" type="xsd:string"/>
+      <xsd:element name="PostalCode" type="xsd:string"/>
+      <xsd:element name="PlanIdentifier" type="xsd:string"/>
+      <xsd:element name="MoveInDate" type="xsd:date"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

@@ -1,0 +1,9 @@
+<ProvisionCableServiceRequest>
+  <ProviderCode>SPECTRUM</ProviderCode>
+  <AccountNumber>SPC-4820019</AccountNumber>
+  <ServiceAddressZip>75001</ServiceAddressZip>
+  <PlanCode>INTERNET_GIG</PlanCode>
+  <CustomerTier>RESIDENTIAL</CustomerTier>
+  <ActivationDate>2026-03-10</ActivationDate>
+  <InstallWindow>AM</InstallWindow>
+</ProvisionCableServiceRequest>

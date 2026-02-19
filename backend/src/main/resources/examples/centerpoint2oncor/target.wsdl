@@ -1,0 +1,22 @@
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                  xmlns:tns="http://example.com/azure/utility/outage"
+                  targetNamespace="http://example.com/azure/utility/outage">
+  <wsdl:types>
+    <xsd:schema>
+      <xsd:import namespace="http://example.com/azure/utility/outage" schemaLocation="azure-target.xsd"/>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="CreateDistributionOutageIncidentInput">
+    <wsdl:part name="parameters" element="tns:CreateDistributionOutageIncidentRequest"/>
+  </wsdl:message>
+  <wsdl:portType name="UtilityOutagePortType">
+    <wsdl:operation name="CreateDistributionOutageIncident">
+      <wsdl:input message="tns:CreateDistributionOutageIncidentInput"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="UtilityOutageBinding" type="tns:UtilityOutagePortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+  </wsdl:binding>
+</wsdl:definitions>

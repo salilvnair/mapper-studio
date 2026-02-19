@@ -1,0 +1,22 @@
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                  xmlns:tns="http://example.com/azure/telecom/provisioning"
+                  targetNamespace="http://example.com/azure/telecom/provisioning">
+  <wsdl:types>
+    <xsd:schema>
+      <xsd:import namespace="http://example.com/azure/telecom/provisioning" schemaLocation="azure-target.xsd"/>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="CreateBroadbandActivationInput">
+    <wsdl:part name="parameters" element="tns:CreateBroadbandActivationRequest"/>
+  </wsdl:message>
+  <wsdl:portType name="TelecomProvisioningPortType">
+    <wsdl:operation name="CreateBroadbandActivation">
+      <wsdl:input message="tns:CreateBroadbandActivationInput"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="TelecomProvisioningBinding" type="tns:TelecomProvisioningPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+  </wsdl:binding>
+</wsdl:definitions>

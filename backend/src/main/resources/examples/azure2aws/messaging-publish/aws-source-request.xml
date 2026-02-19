@@ -1,0 +1,7 @@
+<PublishMessageRequest>
+  <TopicArn>arn:aws:sns:us-east-1:123456789012:order-events</TopicArn>
+  <MessageBody>Order 7781 created</MessageBody>
+  <Subject>OrderCreated</Subject>
+  <MessageGroupId>orders</MessageGroupId>
+  <DeduplicationId>dedup-7781</DeduplicationId>
+</PublishMessageRequest>

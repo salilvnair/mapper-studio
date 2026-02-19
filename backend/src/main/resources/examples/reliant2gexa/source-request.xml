@@ -1,0 +1,9 @@
+<CreateMonthlyUsageBillRequest>
+  <ProviderCode>RELIANT</ProviderCode>
+  <BillingAccountId>REL-332190</BillingAccountId>
+  <BillingCycle>2026-02</BillingCycle>
+  <UsageKwh>1184.25</UsageKwh>
+  <BaseAmount>142.88</BaseAmount>
+  <Taxes>18.44</Taxes>
+  <DueDate>2026-03-20</DueDate>
+</CreateMonthlyUsageBillRequest>

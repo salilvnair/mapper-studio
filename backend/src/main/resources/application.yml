@@ -1,0 +1,49 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: ${MAPPER_SQLITE_URL:jdbc:sqlite:./data/mapper-studio.db}
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.community.dialect.SQLiteDialect
+
+convengine:
+  transport:
+    sse:
+      enabled: false
+    stomp:
+      enabled: false
+  audit:
+    enabled: true
+    level: ALL
+
+  llm:
+    provider: openai
+    temperature: 0.3
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      model: gpt-4.1
+      base-url: https://api.openai.com
+    lmstudio:
+      api-key: ${LMSTUDIO_API_KEY}
+      model: openai/gpt-oss-20b
+      base-url: http://localhost:1234
+
+ccf:
+  core:
+    tables:
+      PAGE_COMMON_QUERY: ZP_PAGE_COMMON_QUERY
+      SECTION_INFO: ZP_SECTION_INFO
+      CONTAINER_INFO: ZP_CONTAINER_INFO
+      CONTAINER_FIELD_INFO: ZP_CONTAINER_FIELD_INFO
+      CONTAINER_QUERY_INFO: ZP_CONTAINER_QUERY_INFO
+
+mapper:
+  sqlite:
+    path: ./data/mapper-studio.db
+    bootstrap-enabled: true
+    # optional: copy this classpath DB file only when the target db path does not exist yet
+    classpath-seed: ""

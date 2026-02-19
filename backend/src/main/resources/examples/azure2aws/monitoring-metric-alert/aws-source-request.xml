@@ -1,0 +1,11 @@
+<PutMetricAlarmRequest>
+  <AlarmName>HighCPU-prod-api</AlarmName>
+  <Namespace>AWS/EC2</Namespace>
+  <MetricName>CPUUtilization</MetricName>
+  <Threshold>85</Threshold>
+  <ComparisonOperator>GreaterThanOrEqualToThreshold</ComparisonOperator>
+  <EvaluationPeriods>3</EvaluationPeriods>
+  <PeriodSeconds>300</PeriodSeconds>
+  <Severity>2</Severity>
+  <AlarmActionArn>arn:aws:sns:us-east-1:123456789012:ops-alerts</AlarmActionArn>
+</PutMetricAlarmRequest>

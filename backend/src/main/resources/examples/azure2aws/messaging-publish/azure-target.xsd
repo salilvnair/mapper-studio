@@ -1,0 +1,17 @@
+<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://example.com/azure/servicebus"
+            xmlns:tns="http://example.com/azure/servicebus"
+            elementFormDefault="qualified">
+  <xsd:element name="SendBrokeredMessageRequest" type="tns:SendBrokeredMessageRequestType"/>
+
+  <xsd:complexType name="SendBrokeredMessageRequestType">
+    <xsd:sequence>
+      <xsd:element name="NamespaceName" type="xsd:string"/>
+      <xsd:element name="QueueOrTopicName" type="xsd:string"/>
+      <xsd:element name="PayloadText" type="xsd:string"/>
+      <xsd:element name="Label" type="xsd:string"/>
+      <xsd:element name="SessionId" type="xsd:string" minOccurs="0"/>
+      <xsd:element name="MessageIdempotencyKey" type="xsd:string" minOccurs="0"/>
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

@@ -1,0 +1,25 @@
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                  xmlns:tns="http://example.com/azure/servicebus"
+                  targetNamespace="http://example.com/azure/servicebus">
+  <wsdl:types>
+    <xsd:schema>
+      <xsd:import namespace="http://example.com/azure/servicebus" schemaLocation="azure-servicebus.xsd"/>
+    </xsd:schema>
+  </wsdl:types>
+
+  <wsdl:message name="SendBrokeredMessageInput">
+    <wsdl:part name="parameters" element="tns:SendBrokeredMessageRequest"/>
+  </wsdl:message>
+
+  <wsdl:portType name="AzureServiceBusPortType">
+    <wsdl:operation name="SendBrokeredMessage">
+      <wsdl:input message="tns:SendBrokeredMessageInput"/>
+    </wsdl:operation>
+  </wsdl:portType>
+
+  <wsdl:binding name="AzureServiceBusBinding" type="tns:AzureServiceBusPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+  </wsdl:binding>
+</wsdl:definitions>

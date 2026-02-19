@@ -1,0 +1,22 @@
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                  xmlns:tns="http://example.com/azure/energy/billing"
+                  targetNamespace="http://example.com/azure/energy/billing">
+  <wsdl:types>
+    <xsd:schema>
+      <xsd:import namespace="http://example.com/azure/energy/billing" schemaLocation="azure-target.xsd"/>
+    </xsd:schema>
+  </wsdl:types>
+  <wsdl:message name="GenerateCustomerInvoiceInput">
+    <wsdl:part name="parameters" element="tns:GenerateCustomerInvoiceRequest"/>
+  </wsdl:message>
+  <wsdl:portType name="EnergyBillingPortType">
+    <wsdl:operation name="GenerateCustomerInvoice">
+      <wsdl:input message="tns:GenerateCustomerInvoiceInput"/>
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="EnergyBillingBinding" type="tns:EnergyBillingPortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+  </wsdl:binding>
+</wsdl:definitions>

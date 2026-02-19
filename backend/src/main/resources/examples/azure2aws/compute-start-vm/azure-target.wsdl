@@ -1,0 +1,25 @@
+<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+                  xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                  xmlns:tns="http://example.com/azure/compute"
+                  targetNamespace="http://example.com/azure/compute">
+  <wsdl:types>
+    <xsd:schema>
+      <xsd:import namespace="http://example.com/azure/compute" schemaLocation="azure-compute.xsd"/>
+    </xsd:schema>
+  </wsdl:types>
+
+  <wsdl:message name="PowerOnVirtualMachineInput">
+    <wsdl:part name="parameters" element="tns:PowerOnVirtualMachineRequest"/>
+  </wsdl:message>
+
+  <wsdl:portType name="AzureComputePortType">
+    <wsdl:operation name="PowerOnVirtualMachine">
+      <wsdl:input message="tns:PowerOnVirtualMachineInput"/>
+    </wsdl:operation>
+  </wsdl:portType>
+
+  <wsdl:binding name="AzureComputeBinding" type="tns:AzureComputePortType">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
+  </wsdl:binding>
+</wsdl:definitions>
