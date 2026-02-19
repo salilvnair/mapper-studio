@@ -12,9 +12,9 @@ It integrates ConvEngine intent/rule execution, schema parsing, mapping suggesti
 - Apache POI (XLSX export)
 
 ## Startup Model
-- Main app: `src/main/java/com/obe/mapperstudio/MapperStudioApplication.java`
+- Main app: `src/main/java/com/salilvnair/mapperstudio/MapperStudioApplication.java`
 - Pre-boot initializer:
-  - `src/main/java/com/obe/mapperstudio/bootstrap/SqliteBootstrapInitializer.java`
+  - `src/main/java/com/salilvnair/mapperstudio/bootstrap/SqliteBootstrapInitializer.java`
 - Initializer responsibilities:
   1. Resolve SQLite file path (`mapper.sqlite.path`)
   2. Create DB file if absent
@@ -24,7 +24,7 @@ It integrates ConvEngine intent/rule execution, schema parsing, mapping suggesti
   6. Set `MAPPER_SQLITE_URL` system property for datasource wiring
 
 ## HTTP API (StudioController)
-File: `src/main/java/com/obe/mapperstudio/api/StudioController.java`
+File: `src/main/java/com/salilvnair/mapperstudio/api/StudioController.java`
 - `POST /api/studio/message`
 - `POST /api/studio/mappings/save`
 - `POST /api/studio/mappings/confirm`

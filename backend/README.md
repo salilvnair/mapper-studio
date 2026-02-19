@@ -98,18 +98,18 @@ curl -X POST http://localhost:8081/api/studio/admin/db/init
 
 ## Codebase Map
 - App entry:
-  - `src/main/java/com/obe/mapperstudio/MapperStudioApplication.java`
+  - `src/main/java/com/salilvnair/mapperstudio/MapperStudioApplication.java`
 - Bootstrap:
-  - `src/main/java/com/obe/mapperstudio/bootstrap/SqliteBootstrapInitializer.java`
+  - `src/main/java/com/salilvnair/mapperstudio/bootstrap/SqliteBootstrapInitializer.java`
 - API:
-  - `src/main/java/com/obe/mapperstudio/api/StudioController.java`
-  - `src/main/java/com/obe/mapperstudio/api/dto/*`
+  - `src/main/java/com/salilvnair/mapperstudio/api/StudioController.java`
+  - `src/main/java/com/salilvnair/mapperstudio/api/dto/*`
 - Studio services:
-  - `src/main/java/com/obe/mapperstudio/service/studio/*`
+  - `src/main/java/com/salilvnair/mapperstudio/service/studio/*`
 - ConvEngine task orchestration:
-  - `src/main/java/com/obe/mapperstudio/task/MappingStudioTask.java`
-  - `src/main/java/com/obe/mapperstudio/task/service/*`
-  - `src/main/java/com/obe/mapperstudio/task/model/*`
+  - `src/main/java/com/salilvnair/mapperstudio/task/MappingStudioTask.java`
+  - `src/main/java/com/salilvnair/mapperstudio/task/service/*`
+  - `src/main/java/com/salilvnair/mapperstudio/task/model/*`
 - SQL + examples:
   - `src/main/resources/sql/*`
   - `src/main/resources/examples/*`

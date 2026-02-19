@@ -23,7 +23,7 @@ This repository is a single git project with two apps:
 
 ## Data + SQL
 - ConvEngine SQLite DDL: `backend/src/main/resources/sql/ce-ddl_sqlite.sql`
-- OBE SQLite DDL: `backend/src/main/resources/sql/obe-ddl_sqlite.sql`
+- MPS SQLite DDL: `backend/src/main/resources/sql/mps-ddl_sqlite.sql`
 - Base seed: `backend/src/main/resources/sql/ce-seed-mapping-studio_sqlite.sql`
 - Upsert seed: `backend/src/main/resources/sql/ce-seed-mapping-studio-upsert_sqlite.sql`
 

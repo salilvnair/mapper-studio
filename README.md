@@ -4,7 +4,7 @@ Starter Mapping Studio using:
 
 - Backend: Spring Boot + ConvEngine
 - Frontend: React + Vite + React Flow
-- DB: PostgreSQL (`ce_*` + `obe_*` tables)
+- DB: PostgreSQL (`ce_*` + `mps_*` tables)
 
 ## What this starter demonstrates
 
@@ -12,7 +12,7 @@ Starter Mapping Studio using:
 2. AI-driven mapping suggestion loop via ConvEngine flow.
 3. React Flow visualization from source fields -> target fields.
 4. Missing target-field highlight and editable metadata table.
-5. OBE-specific persistence tables for project/version/mapping artifacts.
+5. MPS-specific persistence tables for project/version/mapping artifacts.
 
 ## Structure
 
