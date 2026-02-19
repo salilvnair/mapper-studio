@@ -1,5 +1,5 @@
-export type SourceType = 'SOAP' | 'OPENAPI' | 'DATABASE'
-export type TargetType = 'JSON_SCHEMA' | 'XSD' | 'XSD+WSDL'
+export type SourceType = 'XML' | 'JSON' | 'DATABASE'
+export type TargetType = 'JSON' | 'JSON_SCHEMA' | 'XML' | 'XSD' | 'XSD+WSDL'
 export type MappingOrigin = 'LLM_DERIVED' | 'EDITED'
 
 export type MappingSuggestion = {
@@ -9,7 +9,7 @@ export type MappingSuggestion = {
   transformType: 'DIRECT' | 'EXPRESSION' | 'ENUM_MAP' | 'LOOKUP' | 'CONDITIONAL'
   reason: string
   targetArtifactName?: string
-  targetArtifactType?: 'XSD' | 'WSDL' | 'JSON_SCHEMA'
+  targetArtifactType?: 'XSD' | 'WSDL' | 'JSON_SCHEMA' | 'JSON' | 'XML'
 }
 
 export type EditableMapping = MappingSuggestion & {

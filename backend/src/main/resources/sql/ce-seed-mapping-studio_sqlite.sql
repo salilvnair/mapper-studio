@@ -12,7 +12,7 @@ INSERT INTO ce_output_schema (intent_code, state_code, json_schema, description,
 VALUES (
 'MAPPING_STUDIO',
 'COLLECT_INPUTS',
-'{"type":"object","properties":{"projectCode":{"type":"string"},"mappingVersion":{"type":"string"},"sourceType":{"type":"string","enum":["SOAP","OPENAPI","DATABASE"]},"sourceSpec":{"type":"string"},"targetType":{"type":"string","enum":["JSON_SCHEMA","XSD","XSD+WSDL"]},"targetSchema":{"type":"string"}},"required":["projectCode","mappingVersion","sourceType","sourceSpec","targetSchema"]}',
+'{"type":"object","properties":{"projectCode":{"type":"string"},"mappingVersion":{"type":"string"},"sourceType":{"type":"string","enum":["XML","JSON","DATABASE"]},"sourceSpec":{"type":"string"},"targetType":{"type":"string","enum":["JSON","JSON_SCHEMA","XML","XSD","XSD+WSDL"]},"targetSchema":{"type":"string"}},"required":["projectCode","mappingVersion","sourceType","sourceSpec","targetSchema"]}',
 'Collect required mapping setup inputs',
 1,
 1
@@ -43,7 +43,7 @@ VALUES
 
 INSERT INTO ce_response (intent_code, state_code, output_format, response_type, exact_text, derivation_hint, priority, enabled, description)
 VALUES
-('MAPPING_STUDIO', 'COLLECT_INPUTS', 'TEXT', 'EXACT', 'Provide projectCode, mappingVersion, sourceType, sourceSpec, targetType (JSON_SCHEMA/XSD/XSD+WSDL), targetSchema.', null, 10, 1, 'Collect inputs'),
+('MAPPING_STUDIO', 'COLLECT_INPUTS', 'TEXT', 'EXACT', 'Provide projectCode, mappingVersion, sourceType (XML/JSON/DATABASE), sourceSpec, targetType (JSON/JSON_SCHEMA/XML/XSD/XSD+WSDL), targetSchema.', null, 10, 1, 'Collect inputs'),
 ('MAPPING_STUDIO', 'PARSE_READY', 'TEXT', 'EXACT', 'Parsing schema artifacts now.', null, 20, 1, 'Parse start'),
 ('MAPPING_STUDIO', 'SUGGEST_READY', 'TEXT', 'DERIVED', null, 'Summarize mapping suggestions.', 30, 1, 'Suggestion summary'),
 ('MAPPING_STUDIO', 'VALIDATE_READY', 'TEXT', 'DERIVED', null, 'Summarize mapping validation report.', 40, 1, 'Validation summary'),

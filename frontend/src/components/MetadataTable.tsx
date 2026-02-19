@@ -86,7 +86,7 @@ export default function MetadataTable({
   onSaveDownload,
 }: Props) {
   const [editingIds, setEditingIds] = useState<Record<string, boolean>>({})
-  const xmlMode = sourceType === 'SOAP' || targetType !== 'JSON_SCHEMA'
+  const xmlMode = sourceType === 'XML'
   const pathLabel = xmlMode ? 'XML Path' : 'JSON Path'
   const editingActive = useMemo(() => Object.values(editingIds).some(Boolean), [editingIds])
 

@@ -61,13 +61,13 @@ Task dependencies are intentionally split into focused services:
 - Use constants from this class for all session input/output keys.
 
 ## Persistence + Confirmation Rules
-- Save operation clears prior `obe_mapping_field` rows for `(project_code, version_code)` and inserts selected rows.
-- Confirm operation writes confirmation audit (`obe_mapping_manual_confirm_audit`).
+- Save operation clears prior `mps_mapping_field` rows for `(project_code, version_code)` and inserts selected rows.
+- Confirm operation writes confirmation audit (`mps_mapping_manual_confirm_audit`).
 - Export operation is blocked unless manual confirmation exists.
 
 ## SQL Artifacts
 - `src/main/resources/sql/ce-ddl_sqlite.sql`
-- `src/main/resources/sql/obe-ddl_sqlite.sql`
+- `src/main/resources/sql/mps-ddl_sqlite.sql`
 - `src/main/resources/sql/ce-seed-mapping-studio_sqlite.sql`
 - `src/main/resources/sql/ce-seed-mapping-studio-upsert_sqlite.sql`
 - `src/main/resources/sql/initdb.http`

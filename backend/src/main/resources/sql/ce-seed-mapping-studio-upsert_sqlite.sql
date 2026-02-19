@@ -64,3 +64,14 @@ WHERE NOT EXISTS (
     AND action_value = 'COLLECT_INPUTS'
     AND phase = 'AGENT_POST_INTENT'
 );
+
+UPDATE ce_output_schema
+SET json_schema = '{"type":"object","properties":{"projectCode":{"type":"string"},"mappingVersion":{"type":"string"},"sourceType":{"type":"string","enum":["XML","JSON","DATABASE"]},"sourceSpec":{"type":"string"},"targetType":{"type":"string","enum":["JSON","JSON_SCHEMA","XML","XSD","XSD+WSDL"]},"targetSchema":{"type":"string"}},"required":["projectCode","mappingVersion","sourceType","sourceSpec","targetSchema"]}'
+WHERE intent_code = 'MAPPING_STUDIO'
+  AND state_code = 'COLLECT_INPUTS';
+
+UPDATE ce_response
+SET exact_text = 'Provide projectCode, mappingVersion, sourceType (XML/JSON/DATABASE), sourceSpec, targetType (JSON/JSON_SCHEMA/XML/XSD/XSD+WSDL), targetSchema.'
+WHERE intent_code = 'MAPPING_STUDIO'
+  AND state_code = 'COLLECT_INPUTS'
+  AND response_type = 'EXACT';

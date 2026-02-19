@@ -79,7 +79,8 @@ function FlowNodeCard({ data, selected }: NodeProps<NodeMeta>) {
 }
 
 export default function FlowCanvas({ rows, missingTargets, sourceType, targetType, onRowsChange }: Props) {
-  const xmlMode = sourceType === 'SOAP' || targetType !== 'JSON_SCHEMA'
+  const sourceXmlMode = sourceType === 'XML'
+  const targetJsonMode = targetType === 'JSON_SCHEMA' || targetType === 'JSON'
   const nodeTypes = useMemo(() => ({ mappingNode: FlowNodeCard }), [])
   const shellRef = useRef<HTMLDivElement | null>(null)
   const [selectedNode, setSelectedNode] = useState<Node<NodeMeta> | null>(null)
@@ -137,7 +138,7 @@ export default function FlowCanvas({ rows, missingTargets, sourceType, targetTyp
           role: 'source',
           keyPath: src,
           label: leaf(src),
-          pathLabel: xmlMode ? toXmlPath(src) : toJsonPath(src),
+          pathLabel: sourceXmlMode ? toXmlPath(src) : toJsonPath(src),
         },
         style: { width: 300 },
       })),
@@ -149,7 +150,7 @@ export default function FlowCanvas({ rows, missingTargets, sourceType, targetTyp
           role: 'target',
           keyPath: tgt,
           label: leaf(tgt),
-          pathLabel: xmlMode ? toXmlPath(tgt) : toJsonPath(tgt),
+          pathLabel: targetJsonMode ? toJsonPath(tgt) : toXmlPath(tgt),
           missing: missingTargets.map(canonical).includes(tgt),
         },
         style: { width: 300 },
@@ -191,7 +192,8 @@ export default function FlowCanvas({ rows, missingTargets, sourceType, targetTyp
     missingTargets,
     orphanSources,
     orphanTargets,
-    xmlMode,
+    sourceXmlMode,
+    targetJsonMode,
     selectedEdgeId,
     setNodes,
     setEdges,
@@ -451,7 +453,7 @@ export default function FlowCanvas({ rows, missingTargets, sourceType, targetTyp
               {selected.data.role === 'source' ? 'Source Node' : 'Target Node'}
             </div>
             <div className="flow-bubble-meta-row">
-              <b>{xmlMode ? 'Path' : 'Path'}</b>
+              <b>Path</b>
               <span className="flow-bubble-inline-chip">{selected.data.pathLabel}</span>
             </div>
             <div className="flow-node-edit-row">

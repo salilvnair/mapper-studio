@@ -47,7 +47,7 @@ Before Spring datasource/JPA fully initializes, `SqliteBootstrapInitializer`:
 3. Sets system property `MAPPER_SQLITE_URL`
 4. Applies schema SQL:
    - `sql/ce-ddl_sqlite.sql`
-   - `sql/obe-ddl_sqlite.sql`
+   - `sql/mps-ddl_sqlite.sql`
 5. Applies data SQL:
    - `sql/ce-seed-mapping-studio_sqlite.sql` (base, when needed)
    - `sql/ce-seed-mapping-studio-upsert_sqlite.sql` (idempotent updates)

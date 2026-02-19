@@ -19,34 +19,42 @@ import AuditTimeline from './components/AuditTimeline'
 
 const defaultProjectCode = 'CAR_MODIFICATION_BNZADPT'
 const defaultMappingVersion = '1.0.0'
-const defaultSourceType: SourceType = 'OPENAPI'
-const defaultTargetType: TargetType = 'JSON_SCHEMA'
+const defaultSourceType: SourceType = 'JSON'
+const defaultTargetType: TargetType = 'JSON'
 const defaultSourceSpecByType: Record<SourceType, string> = {
-  OPENAPI: '{"agreement":{"customerName":"Robert King","agreementNumber":"AGR-77881"},"car":{"vehicleVin":"1HGCM82633A004352"}}',
-  SOAP: '<PolicyRequest><CustomerName>Robert King</CustomerName><ContractId>C-5005</ContractId><VehicleVin>KMHCT4AE1FU123789</VehicleVin><Premium>1325.20</Premium></PolicyRequest>',
+  JSON: '{"agreement":{"customerName":"Robert King","agreementNumber":"AGR-77881"},"car":{"vehicleVin":"1HGCM82633A004352"}}',
+  XML: '<PolicyRequest><CustomerName>Robert King</CustomerName><ContractId>C-5005</ContractId><VehicleVin>KMHCT4AE1FU123789</VehicleVin><Premium>1325.20</Premium></PolicyRequest>',
   DATABASE: '{"table":"policy_request","columns":["customer_name","contract_id","vehicle_vin","premium"]}',
 }
 const defaultXsdSchema = '<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://example.com/policy" xmlns:tns="http://example.com/policy" elementFormDefault="qualified"><xsd:element name="CreatePolicyRequest" type="tns:CreatePolicyRequestType"/><xsd:complexType name="CreatePolicyRequestType"><xsd:sequence><xsd:element name="CustomerName" type="xsd:string"/><xsd:element name="ContractId" type="xsd:string"/><xsd:element name="VehicleVin" type="xsd:string"/><xsd:element name="Premium" type="xsd:decimal"/></xsd:sequence></xsd:complexType></xsd:schema>'
 const defaultWsdlSchema = '<wsdl:definitions xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://example.com/policy" targetNamespace="http://example.com/policy"><wsdl:types><xsd:schema><xsd:import namespace="http://example.com/policy" schemaLocation="policy.xsd"/></xsd:schema></wsdl:types><wsdl:message name="CreatePolicyInput"><wsdl:part name="parameters" element="tns:CreatePolicyRequest"/></wsdl:message><wsdl:portType name="PolicyPortType"><wsdl:operation name="CreatePolicy"><wsdl:input message="tns:CreatePolicyInput"/></wsdl:operation></wsdl:portType><wsdl:binding name="PolicyBinding" type="tns:PolicyPortType"><soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/></wsdl:binding></wsdl:definitions>'
 const defaultJsonSchemaFileName = 'schema.json'
+const defaultJsonFileName = 'target.json'
+const defaultXmlFileName = 'target.xml'
 const defaultTargetSchemaByType: Record<TargetType, string> = {
+  JSON: '{"customer":{"legalName":"Robert King"},"contract":{"contractId":"AGR-77881"},"vehicle":{"vin":"1HGCM82633A004352"}}',
   JSON_SCHEMA: '{"type":"object","properties":{"customer.legalName":{"type":"string"},"contract.contractId":{"type":"string"},"vehicle.vin":{"type":"string"}},"required":["customer.legalName","contract.contractId"]}',
+  XML: '<CreatePolicyRequest><ContractNumber>AGR-77881</ContractNumber><CustomerFullName>Robert King</CustomerFullName><VehicleIdentifier>1HGCM82633A004352</VehicleIdentifier></CreatePolicyRequest>',
   XSD: '<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified"><xsd:element name="PolicyRequest"><xsd:complexType><xsd:sequence><xsd:element name="CustomerName" type="xsd:string"/><xsd:element name="ContractId" type="xsd:string"/><xsd:element name="VehicleVin" type="xsd:string"/></xsd:sequence></xsd:complexType></xsd:element></xsd:schema>',
   'XSD+WSDL': defaultXsdSchema,
 }
 let xmlFormatterRegistered = false
 
 const sourceTypeOptions = [
-  { value: 'OPENAPI', label: 'OPENAPI' },
-  { value: 'SOAP', label: 'SOAP' },
+  { value: 'JSON', label: 'JSON' },
+  { value: 'XML', label: 'XML' },
   { value: 'DATABASE', label: 'DATABASE' },
 ]
 
 const targetTypeOptions = [
+  { value: 'JSON', label: 'JSON' },
   { value: 'JSON_SCHEMA', label: 'JSON_SCHEMA' },
+  { value: 'XML', label: 'XML' },
   { value: 'XSD', label: 'XSD' },
   { value: 'XSD+WSDL', label: 'XSD+WSDL' },
 ]
+
+const isJsonTargetType = (type: TargetType) => type === 'JSON' || type === 'JSON_SCHEMA'
 
 type UiToast = {
   kind: 'success' | 'error'
@@ -164,7 +172,7 @@ export default function App() {
   const [targetXsdArtifacts, setTargetXsdArtifacts] = useState<SchemaArtifact[]>([{ name: 'policy.xsd', content: defaultXsdSchema }])
   const [activeXsdArtifactIndex, setActiveXsdArtifactIndex] = useState(0)
   const [targetArtifactTab, setTargetArtifactTab] = useState<'XSD' | 'WSDL'>('XSD')
-  const [targetSchemaFileName, setTargetSchemaFileName] = useState(defaultJsonSchemaFileName)
+  const [targetSchemaFileName, setTargetSchemaFileName] = useState(defaultJsonFileName)
   const [targetXsdFileName, setTargetXsdFileName] = useState('policy.xsd')
   const [targetWsdlFileName, setTargetWsdlFileName] = useState('policy.wsdl')
   const [targetSchemaAttached, setTargetSchemaAttached] = useState(false)
@@ -197,8 +205,8 @@ export default function App() {
   const [editableMappings, setEditableMappings] = useState<EditableMapping[]>([])
   const suggestionsSignatureRef = useRef<string>('[]')
   const viewMode: ViewMode = currentPath.endsWith('/settings') ? 'settings' : 'studio'
-  const sourceLanguage = sourceType === 'SOAP' ? 'xml' : 'json'
-  const targetLanguage = targetType === 'JSON_SCHEMA' ? 'json' : 'xml'
+  const sourceLanguage = sourceType === 'XML' ? 'xml' : 'json'
+  const targetLanguage = isJsonTargetType(targetType) ? 'json' : 'xml'
 
   const suggestions = useMemo(() => {
     if (!response) return []
@@ -329,7 +337,7 @@ export default function App() {
   }
 
   function buildMappingPayload(): MappingExportRequest {
-    const pathType = sourceType === 'SOAP' || targetType !== 'JSON_SCHEMA' ? 'XML_PATH' : 'JSON_PATH'
+    const pathType = sourceType === 'XML' ? 'XML_PATH' : 'JSON_PATH'
     return {
       projectCode: projectCode.trim() || defaultProjectCode,
       mappingVersion: mappingVersion.trim() || defaultMappingVersion,
@@ -430,15 +438,15 @@ export default function App() {
     }
     try {
       const res = await sendStudioMessage(message, convId, {
-        source_payload_type: sourceType === 'SOAP' ? 'XML' : 'JSON',
-        target_payload_type: targetType === 'JSON_SCHEMA' ? 'JSON' : 'XML',
+        source_payload_type: sourceType === 'XML' ? 'XML' : 'JSON',
+        target_payload_type: isJsonTargetType(targetType) ? 'JSON' : 'XML',
         projectCode: projectCode.trim() || defaultProjectCode,
         mappingVersion: mappingVersion.trim() || defaultMappingVersion,
         sourceType,
         targetType,
         sourceSpec: normalizedSourceSpec,
         targetSchema: effectiveTargetSchema,
-        targetSchemaJson: targetType === 'JSON_SCHEMA' ? effectiveTargetSchema : '',
+        targetSchemaJson: isJsonTargetType(targetType) ? effectiveTargetSchema : '',
         targetSchemaXsd: targetType === 'XSD+WSDL' ? normalizedTargetSchemaXsd : targetType === 'XSD' ? effectiveTargetSchema : '',
         targetSchemaWsdl: targetType === 'XSD+WSDL' ? normalizedTargetSchemaWsdl : '',
         targetSchemaXsdName: targetXsdFileName,
@@ -517,16 +525,22 @@ export default function App() {
     })
   }
 
-  async function onTargetSchemaFileUpload(kind: 'JSON_SCHEMA' | 'XSD' | 'WSDL', e: ChangeEvent<HTMLInputElement>) {
+  async function onTargetSchemaFileUpload(kind: 'JSON' | 'JSON_SCHEMA' | 'XML' | 'XSD' | 'WSDL', e: ChangeEvent<HTMLInputElement>) {
     const files = Array.from(e.target.files ?? [])
     if (!files.length) return
     try {
-      if (kind === 'JSON_SCHEMA') {
+      if (kind === 'JSON_SCHEMA' || kind === 'JSON') {
         const file = files[0]
         const content = await file.text()
         setTargetSchema(content)
         setTargetSchemaFileName(file.name)
         setTargetSchemaAttached(true)
+      } else if (kind === 'XML') {
+        const file = files[0]
+        const content = await file.text()
+        setTargetSchema(content)
+        setTargetXsdFileName(file.name)
+        setTargetXsdAttached(true)
       } else if (kind === 'XSD') {
         const artifacts = await Promise.all(
           files.map(async (file) => ({ name: file.name, content: await file.text() }))
@@ -537,7 +551,7 @@ export default function App() {
         setTargetSchemaXsd(first.content)
         setTargetXsdFileName(first.name)
         setTargetXsdAttached(true)
-        if (targetType === 'XSD') {
+        if (targetType === 'XSD' || targetType === 'XML') {
           setTargetSchema(first.content)
         }
         setTargetArtifactTab('XSD')
@@ -776,7 +790,7 @@ export default function App() {
               )}
             </button>
           </div>
-          <p className="hero-subtitle">Map XML/JSON sources to JSON Schema, XSD, or XSD+WSDL with AI-assisted suggestions and manual correction workflow.</p>
+          <p className="hero-subtitle">Map XML/JSON sources to JSON, JSON Schema, XML, XSD, or XSD+WSDL with AI-assisted suggestions and manual correction workflow.</p>
         </header>
 
         <form onSubmit={onSubmit} className="card">
@@ -826,8 +840,8 @@ export default function App() {
                     setActiveXsdArtifactIndex(0)
                     setTargetSchemaXsd(defaultXsdSchema)
                     setTargetSchemaWsdl(defaultWsdlSchema)
-                  } else if (next === 'JSON_SCHEMA') {
-                    setTargetSchemaFileName(defaultJsonSchemaFileName)
+                  } else if (isJsonTargetType(next)) {
+                    setTargetSchemaFileName(next === 'JSON_SCHEMA' ? defaultJsonSchemaFileName : defaultJsonFileName)
                     setTargetSchemaAttached(false)
                   } else if (next === 'XSD') {
                     setTargetXsdFileName('policy.xsd')
@@ -835,6 +849,9 @@ export default function App() {
                     setTargetXsdArtifacts([{ name: 'policy.xsd', content: defaultTargetSchemaByType.XSD }])
                     setActiveXsdArtifactIndex(0)
                     setTargetSchemaXsd(defaultTargetSchemaByType.XSD)
+                  } else if (next === 'XML') {
+                    setTargetXsdFileName(defaultXmlFileName)
+                    setTargetXsdAttached(false)
                   }
                 }}
               />
@@ -909,18 +926,27 @@ export default function App() {
                           </label>
                         </>
                       ) : (
-                        <label className={`ce-attach-chip ${targetType === 'JSON_SCHEMA' ? (targetSchemaAttached ? 'is-attached' : 'is-pending') : (targetXsdAttached ? 'is-attached' : 'is-pending')}`}>
+                        <label className={`ce-attach-chip ${isJsonTargetType(targetType) ? (targetSchemaAttached ? 'is-attached' : 'is-pending') : (targetXsdAttached ? 'is-attached' : 'is-pending')}`}>
                           <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
                             <path d="M8.5 12.5L13.8 7.2C15.3 5.7 17.7 5.7 19.2 7.2C20.7 8.7 20.7 11.1 19.2 12.6L11.8 20C9.8 22 6.5 22 4.5 20C2.5 18 2.5 14.7 4.5 12.7L12 5.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
                           </svg>
-                          {targetType === 'JSON_SCHEMA'
-                            ? (targetSchemaAttached ? targetSchemaFileName : 'Attach JSON Schema')
-                            : (targetXsdAttached ? targetXsdFileName : 'Attach XSD')}
+                          {isJsonTargetType(targetType)
+                            ? (targetSchemaAttached ? targetSchemaFileName : (targetType === 'JSON' ? 'Attach JSON' : 'Attach JSON Schema'))
+                            : (targetXsdAttached ? targetXsdFileName : (targetType === 'XML' ? 'Attach XML' : 'Attach XSD'))}
                           <input
                             type="file"
-                            multiple={targetType !== 'JSON_SCHEMA'}
-                            accept={targetType === 'JSON_SCHEMA' ? '.json,application/json,text/plain' : '.xsd,.xml,text/xml,application/xml'}
-                            onChange={(e) => onTargetSchemaFileUpload(targetType === 'JSON_SCHEMA' ? 'JSON_SCHEMA' : 'XSD', e)}
+                            multiple={targetType === 'XSD'}
+                            accept={isJsonTargetType(targetType)
+                              ? '.json,application/json,text/plain'
+                              : targetType === 'XML'
+                                ? '.xml,text/xml,application/xml'
+                                : '.xsd,.xml,text/xml,application/xml'}
+                            onChange={(e) => onTargetSchemaFileUpload(
+                              isJsonTargetType(targetType)
+                                ? (targetType === 'JSON' ? 'JSON' : 'JSON_SCHEMA')
+                                : (targetType === 'XML' ? 'XML' : 'XSD'),
+                              e
+                            )}
                           />
                         </label>
                       )}
