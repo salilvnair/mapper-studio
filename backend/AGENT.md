@@ -66,10 +66,10 @@ Task dependencies are intentionally split into focused services:
 - Export operation is blocked unless manual confirmation exists.
 
 ## SQL Artifacts
-- `src/main/resources/sql/ce-ddl_sqlite.sql`
-- `src/main/resources/sql/mps-ddl_sqlite.sql`
-- `src/main/resources/sql/ce-seed-mapping-studio_sqlite.sql`
-- `src/main/resources/sql/ce-seed-mapping-studio-upsert_sqlite.sql`
+- `src/main/resources/sql/ddl_sqlite.sql`
+- `src/main/resources/sql/ddl_sqlite.sql`
+- `src/main/resources/sql/seed_sqlite.sql`
+- `src/main/resources/sql/seed_sqlite.sql`
 - `src/main/resources/sql/initdb.http`
 
 ## Guardrails

@@ -22,13 +22,11 @@ import java.util.List;
 public class DbInitializationService {
 
     private static final List<String> DEFAULT_SCHEMA_LOCATIONS = List.of(
-            "classpath:sql/ce-ddl_sqlite.sql",
-            "classpath:sql/mps-ddl_sqlite.sql"
+            "classpath:sql/ddl_sqlite.sql"
     );
 
     private static final List<String> DEFAULT_DATA_LOCATIONS = List.of(
-            "classpath:sql/ce-seed-mapping-studio_sqlite.sql",
-            "classpath:sql/ce-seed-mapping-studio-upsert_sqlite.sql"
+            "classpath:sql/seed_sqlite.sql"
     );
 
     private final DataSource dataSource;

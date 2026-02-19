@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import type { AuditEvent } from '../api/convengine.api'
 
 type StageMeta = { icon: string; color: string }
+type JsonLike = null | string | number | boolean | JsonLike[] | { [key: string]: JsonLike }
 
 const STAGE_META: Record<string, StageMeta> = {
   USER_INPUT: { icon: '🗣️', color: 'border-sky-500' },
@@ -81,21 +82,12 @@ function metaForStage(stage: string | undefined): StageMeta {
   return { icon: '•', color: 'border-slate-300' }
 }
 
-function parsePayload(payloadJson?: string): Record<string, unknown> | null {
+function parsePayload(payloadJson?: string): JsonLike | null {
   if (!payloadJson) return null
   try {
-    return JSON.parse(payloadJson) as Record<string, unknown>
+    return JSON.parse(payloadJson) as JsonLike
   } catch {
     return null
-  }
-}
-
-function prettyPayload(payloadJson?: string): string {
-  if (!payloadJson) return '{}'
-  try {
-    return JSON.stringify(JSON.parse(payloadJson), null, 2)
-  } catch {
-    return payloadJson
   }
 }
 
@@ -105,11 +97,70 @@ function stageDisplayName(auditRow: AuditEvent): string {
   if (!normalized.startsWith('STEP_')) return stage
 
   const payload = parsePayload(auditRow?.payloadJson)
-  const stepName = payload?.step
+  const stepName = payload && typeof payload === 'object' && !Array.isArray(payload) ? payload.step : null
   if (typeof stepName === 'string' && stepName.trim()) {
     return `${stage} - ${stepName.trim()}`
   }
   return stage
+}
+
+function primitiveText(value: JsonLike): string {
+  if (value === null) return 'null'
+  if (typeof value === 'string') return `"${value}"`
+  if (typeof value === 'boolean') return value ? 'true' : 'false'
+  return String(value)
+}
+
+type JsonNodeViewProps = {
+  label?: string
+  value: JsonLike
+  depth?: number
+  defaultOpen?: boolean
+}
+
+function JsonNodeView({ label, value, depth = 0, defaultOpen = false }: JsonNodeViewProps) {
+  const leftPad = `${Math.max(0, depth) * 14}px`
+
+  if (value === null || typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+    return (
+      <div className="audit-json-line font-mono text-[11px] text-slate-700" style={{ paddingLeft: leftPad }}>
+        {label ? <span className="text-slate-500">{label}: </span> : null}
+        <span className="audit-json-value">{primitiveText(value)}</span>
+      </div>
+    )
+  }
+
+  if (Array.isArray(value)) {
+    const count = value.length
+    return (
+      <details open={defaultOpen} className="audit-json-details font-mono text-[11px] text-slate-700">
+        <summary className="audit-json-summary cursor-pointer select-none" style={{ paddingLeft: leftPad }}>
+          {label ? <span className="text-slate-500">{label}: </span> : null}
+          <span>[{count}]</span>
+        </summary>
+        <div>
+          {value.map((item, idx) => (
+            <JsonNodeView key={`${depth}-${idx}`} label={String(idx)} value={item} depth={depth + 1} defaultOpen={false} />
+          ))}
+        </div>
+      </details>
+    )
+  }
+
+  const entries = Object.entries(value)
+  return (
+    <details open={defaultOpen} className="audit-json-details font-mono text-[11px] text-slate-700">
+      <summary className="audit-json-summary cursor-pointer select-none" style={{ paddingLeft: leftPad }}>
+        {label ? <span className="text-slate-500">{label}: </span> : null}
+        <span>{'{'}{entries.length}{'}'}</span>
+      </summary>
+      <div>
+        {entries.map(([k, v]) => (
+          <JsonNodeView key={`${depth}-${k}`} label={k} value={v} depth={depth + 1} defaultOpen={false} />
+        ))}
+      </div>
+    </details>
+  )
 }
 
 type Props = {
@@ -139,13 +190,15 @@ export default function AuditTimeline({ audits, loading, error }: Props) {
 
   return (
     <div className="border-b bg-white h-full min-h-0">
-      <div className="h-full overflow-y-auto px-4 py-3 space-y-3 text-xs">
+      <div className="audit-scroll-hidden h-full overflow-y-auto px-4 py-3 space-y-3 text-xs">
         {!sorted.length && <div className="text-slate-400 text-sm">No audit events yet.</div>}
 
         {sorted.map((a, i) => {
           const meta = metaForStage(a.stage)
           const stageLabel = stageDisplayName(a)
           const isOpen = openIndex === i
+          const payloadObj = parsePayload(a.payloadJson)
+
           return (
             <div key={`${a.auditId ?? i}-${a.createdAt ?? ''}`} className="relative pl-6">
               <div className={`absolute left-[11px] top-0 bottom-0 border-l-2 ${meta.color}`} />
@@ -165,9 +218,13 @@ export default function AuditTimeline({ audits, loading, error }: Props) {
               </div>
 
               {isOpen && a.payloadJson && (
-                <pre className="max-w-[680px] mt-2 bg-slate-50 border rounded p-2 text-[11px] text-slate-700 whitespace-pre-wrap break-all">
-                  {prettyPayload(a.payloadJson)}
-                </pre>
+                <div className="audit-json-card w-full min-w-0 mt-2 bg-slate-50 border rounded p-2 overflow-x-hidden">
+                  {payloadObj !== null ? (
+                    <JsonNodeView value={payloadObj} defaultOpen />
+                  ) : (
+                    <pre className="font-mono text-[11px] text-slate-700 whitespace-pre-wrap break-words overflow-x-hidden">{a.payloadJson}</pre>
+                  )}
+                </div>
               )}
             </div>
           )

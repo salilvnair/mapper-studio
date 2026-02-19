@@ -201,6 +201,9 @@ export default function App() {
   const [auditError, setAuditError] = useState('')
   const [auditEvents, setAuditEvents] = useState<AuditEvent[]>([])
   const [copiedConvId, setCopiedConvId] = useState(false)
+  const [auditDrawerWidth, setAuditDrawerWidth] = useState(460)
+  const [auditResizing, setAuditResizing] = useState(false)
+  const auditResizingRef = useRef(false)
   const [stableSuggestions, setStableSuggestions] = useState<MappingSuggestion[]>([])
   const [editableMappings, setEditableMappings] = useState<EditableMapping[]>([])
   const suggestionsSignatureRef = useRef<string>('[]')
@@ -224,6 +227,36 @@ export default function App() {
     const onPop = () => setCurrentPath(window.location.pathname)
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
+  }, [])
+
+  useEffect(() => {
+    const onMouseMove = (event: MouseEvent) => {
+      if (!auditResizingRef.current) return
+      const minWidth = 460
+      const maxWidth = Math.floor(window.innerWidth * 0.8)
+      const next = Math.min(Math.max(window.innerWidth - event.clientX, minWidth), maxWidth)
+      setAuditDrawerWidth(next)
+    }
+
+    const stopResize = () => {
+      if (!auditResizingRef.current) return
+      auditResizingRef.current = false
+      setAuditResizing(false)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
+
+    window.addEventListener('mousemove', onMouseMove)
+    window.addEventListener('mouseup', stopResize)
+    window.addEventListener('mouseleave', stopResize)
+
+    return () => {
+      window.removeEventListener('mousemove', onMouseMove)
+      window.removeEventListener('mouseup', stopResize)
+      window.removeEventListener('mouseleave', stopResize)
+      document.body.style.cursor = ''
+      document.body.style.userSelect = ''
+    }
   }, [])
 
   useEffect(() => {
@@ -440,8 +473,8 @@ export default function App() {
       const res = await sendStudioMessage(message, convId, {
         source_payload_type: sourceType === 'XML' ? 'XML' : 'JSON',
         target_payload_type: isJsonTargetType(targetType) ? 'JSON' : 'XML',
-        projectCode: projectCode.trim() || defaultProjectCode,
-        mappingVersion: mappingVersion.trim() || defaultMappingVersion,
+        projectCode: projectCode.trim(),
+        mappingVersion: mappingVersion.trim(),
         sourceType,
         targetType,
         sourceSpec: normalizedSourceSpec,
@@ -599,6 +632,21 @@ export default function App() {
     }
   }
 
+  function onAuditResizeMouseDown(event: { preventDefault: () => void }) {
+    event.preventDefault()
+    auditResizingRef.current = true
+    setAuditResizing(true)
+    document.body.style.cursor = 'col-resize'
+    document.body.style.userSelect = 'none'
+  }
+
+  function onAuditResizeDoubleClick() {
+    const defaultWidth = 460
+    const maxWidth = Math.floor(window.innerWidth * 0.8)
+    const threshold = 16
+    setAuditDrawerWidth((prev) => (Math.abs(prev - maxWidth) <= threshold ? defaultWidth : maxWidth))
+  }
+
   return (
     <>
       {viewMode === 'studio' && (
@@ -636,7 +684,8 @@ export default function App() {
       )}
 
       {viewMode === 'studio' && (
-      <aside className={`audit-drawer ${auditOpen ? 'open' : ''}`}>
+      <aside className={`audit-drawer ${auditOpen ? 'open' : ''} ${auditResizing ? 'resizing' : ''}`} style={{ width: `${auditDrawerWidth}px` }}>
+        <div className="audit-resize-handle" onMouseDown={onAuditResizeMouseDown} onDoubleClick={onAuditResizeDoubleClick} title="Drag to resize (double-click to toggle max/default)" />
         <div className="audit-head">
           <h3>Audit Timeline</h3>
           <div className="audit-head-actions">

@@ -22,10 +22,10 @@ This repository is a single git project with two apps:
   - `POST /api/studio/admin/db/init`
 
 ## Data + SQL
-- ConvEngine SQLite DDL: `backend/src/main/resources/sql/ce-ddl_sqlite.sql`
-- MPS SQLite DDL: `backend/src/main/resources/sql/mps-ddl_sqlite.sql`
-- Base seed: `backend/src/main/resources/sql/ce-seed-mapping-studio_sqlite.sql`
-- Upsert seed: `backend/src/main/resources/sql/ce-seed-mapping-studio-upsert_sqlite.sql`
+- ConvEngine SQLite DDL: `backend/src/main/resources/sql/ddl_sqlite.sql`
+- MPS SQLite DDL: `backend/src/main/resources/sql/ddl_sqlite.sql`
+- Base seed: `backend/src/main/resources/sql/seed_sqlite.sql`
+- Upsert seed: `backend/src/main/resources/sql/seed_sqlite.sql`
 
 ## Working Rules
 1. Keep frontend and backend API contracts aligned (`frontend/src/types/studio.ts` <-> backend DTOs).

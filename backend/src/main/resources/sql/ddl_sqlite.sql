@@ -1,5 +1,7 @@
 PRAGMA foreign_keys = ON;
 
+-- ==================== CE TABLES ====================
+
 CREATE TABLE IF NOT EXISTS ce_config (
   config_id INTEGER PRIMARY KEY,
   config_type TEXT NOT NULL,
@@ -77,6 +79,7 @@ CREATE TABLE IF NOT EXISTS ce_rule (
   rule_id INTEGER PRIMARY KEY AUTOINCREMENT,
   phase TEXT NOT NULL DEFAULT 'PIPELINE_RULES',
   intent_code TEXT,
+  state_code TEXT,
   rule_type TEXT NOT NULL,
   match_pattern TEXT NOT NULL,
   action TEXT NOT NULL,
@@ -86,7 +89,7 @@ CREATE TABLE IF NOT EXISTS ce_rule (
   description TEXT,
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-CREATE INDEX IF NOT EXISTS idx_ce_rule_priority ON ce_rule (enabled, phase, priority);
+CREATE INDEX IF NOT EXISTS idx_ce_rule_priority ON ce_rule (enabled, phase, state_code, priority);
 
 CREATE TABLE IF NOT EXISTS ce_policy (
   policy_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -124,6 +127,19 @@ CREATE TABLE IF NOT EXISTS ce_audit (
   FOREIGN KEY(conversation_id) REFERENCES ce_conversation(conversation_id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_ce_audit_conversation ON ce_audit (conversation_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS ce_conversation_history (
+  history_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  conversation_id TEXT NOT NULL,
+  entry_type TEXT NOT NULL,
+  role TEXT NOT NULL,
+  stage TEXT NOT NULL,
+  content_text TEXT,
+  payload_json TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY(conversation_id) REFERENCES ce_conversation(conversation_id) ON DELETE CASCADE
+);
+CREATE INDEX IF NOT EXISTS idx_ce_conversation_history_conv ON ce_conversation_history (conversation_id, created_at DESC);
 
 CREATE TABLE IF NOT EXISTS ce_validation_snapshot (
   snapshot_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -191,3 +207,77 @@ CREATE TABLE IF NOT EXISTS ce_container_config (
   created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX IF NOT EXISTS idx_ce_validation_config_lookup ON ce_container_config (intent_code, state_code, enabled, priority);
+
+-- ==================== MPS TABLES ====================
+
+CREATE TABLE IF NOT EXISTS mps_mapping_project (
+  project_code TEXT PRIMARY KEY,
+  project_name TEXT NOT NULL,
+  source_type TEXT NOT NULL,
+  description TEXT,
+  created_by TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS mps_mapping_version (
+  version_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_code TEXT NOT NULL,
+  version_code TEXT NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('DRAFT', 'PUBLISHED')),
+  target_schema_json TEXT NOT NULL,
+  artifact_id TEXT,
+  created_by TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  published_at TEXT,
+  UNIQUE(project_code, version_code),
+  FOREIGN KEY(project_code) REFERENCES mps_mapping_project(project_code)
+);
+
+CREATE TABLE IF NOT EXISTS mps_mapping_field (
+  mapping_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_code TEXT NOT NULL,
+  version_code TEXT NOT NULL,
+  source_path TEXT NOT NULL,
+  target_path TEXT NOT NULL,
+  transform_type TEXT NOT NULL,
+  transform_config TEXT,
+  confidence REAL,
+  reasoning TEXT,
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_mps_mapping_field_proj_ver ON mps_mapping_field(project_code, version_code);
+
+CREATE TABLE IF NOT EXISTS mps_mapping_validation (
+  validation_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_code TEXT NOT NULL,
+  version_code TEXT NOT NULL,
+  missing_required TEXT NOT NULL DEFAULT '[]',
+  type_mismatch TEXT NOT NULL DEFAULT '[]',
+  duplicate_mappings TEXT NOT NULL DEFAULT '[]',
+  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS mps_mapping_publish_audit (
+  publish_audit_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_code TEXT NOT NULL,
+  version_code TEXT NOT NULL,
+  artifact_id TEXT NOT NULL,
+  published_by TEXT NOT NULL,
+  published_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  notes TEXT
+);
+
+CREATE TABLE IF NOT EXISTS mps_mapping_manual_confirm_audit (
+  confirm_audit_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  project_code TEXT NOT NULL,
+  version_code TEXT NOT NULL,
+  confirmed INTEGER NOT NULL DEFAULT 1,
+  confirmed_by TEXT NOT NULL,
+  selected_count INTEGER NOT NULL DEFAULT 0,
+  mapping_snapshot TEXT NOT NULL DEFAULT '[]',
+  notes TEXT,
+  confirmed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS idx_mps_mapping_manual_confirm_proj_ver
+  ON mps_mapping_manual_confirm_audit(project_code, version_code, confirmed_at DESC);

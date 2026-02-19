@@ -13,10 +13,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.Statement;
 import java.util.List;
 
 /**
@@ -32,12 +28,10 @@ public class SqliteBootstrapInitializer implements ApplicationContextInitializer
     private static final String SQLITE_DRIVER = "org.sqlite.JDBC";
 
     private static final List<String> SCHEMA_SCRIPTS = List.of(
-            "classpath:sql/ce-ddl_sqlite.sql",
-            "classpath:sql/mps-ddl_sqlite.sql"
+            "classpath:sql/ddl_sqlite.sql"
     );
 
-    private static final String BASE_SEED_SCRIPT = "classpath:sql/ce-seed-mapping-studio_sqlite.sql";
-    private static final String UPSERT_SEED_SCRIPT = "classpath:sql/ce-seed-mapping-studio-upsert_sqlite.sql";
+    private static final String SEED_SCRIPT = "classpath:sql/seed_sqlite.sql";
 
     @Override
     public void initialize(ConfigurableApplicationContext applicationContext) {
@@ -93,25 +87,7 @@ public class SqliteBootstrapInitializer implements ApplicationContextInitializer
         for (String script : SCHEMA_SCRIPTS) {
             executeScript(ds, script);
         }
-
-        if (isBaseSeedRequired(jdbcUrl)) {
-            executeScript(ds, BASE_SEED_SCRIPT);
-        }
-        executeScript(ds, UPSERT_SEED_SCRIPT);
-    }
-
-    private boolean isBaseSeedRequired(String jdbcUrl) {
-        String sql = "SELECT COUNT(*) FROM ce_config";
-        try (Connection conn = DriverManager.getConnection(jdbcUrl);
-             Statement stmt = conn.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            if (rs.next()) {
-                return rs.getInt(1) == 0;
-            }
-            return true;
-        } catch (Exception ignored) {
-            return true;
-        }
+        executeScript(ds, SEED_SCRIPT);
     }
 
     private void executeScript(DriverManagerDataSource ds, String location) {

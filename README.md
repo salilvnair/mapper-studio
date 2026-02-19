@@ -23,8 +23,8 @@ Starter Mapping Studio using:
 
 1. Run PostgreSQL and create database.
 2. Apply ConvEngine DDL from ConvEngine repo and then:
-   - `backend/src/main/resources/sql/mps-ddl.sql`
-   - `backend/src/main/resources/sql/ce-seed-mapping-studio.sql`
+   - `backend/src/main/resources/sql/ddl.sql`
+   - `backend/src/main/resources/sql/seed.sql`
 3. Configure `backend/src/main/resources/application.yml`.
 4. Start backend:
    - `./mvnw spring-boot:run` (or `mvn spring-boot:run`)
