@@ -1,14 +1,34 @@
 -- Idempotent seed for Mapper Studio (SQLite)
+INSERT INTO ce_config(config_id, config_type, config_key, config_value, enabled)
+VALUES(1, 'AgentIntentResolver', 'MIN_CONFIDENCE', '0.55', 1),
+(2, 'AgentIntentResolver', 'COLLISION_GAP_THRESHOLD', '0.2', 1),
+(3, 'AgentIntentResolver', 'SYSTEM_PROMPT', 'You are an intent resolution agent for a conversational engine.
 
-INSERT INTO ce_config (config_id, config_type, config_key, config_value, enabled, created_at)
-VALUES (1, 'AgentIntentResolver', 'MIN_CONFIDENCE', '0.55', 1, '2026-02-10 10:15:54.227')
-ON CONFLICT(config_type, config_key) DO UPDATE SET
-  config_value = excluded.config_value,
-  enabled = excluded.enabled,
-  created_at = excluded.created_at;
+                 Return JSON ONLY with fields:
+                 {
+                   "intent": "<INTENT_CODE_OR_NULL>",
+                   "state": "INTENT_COLLISION | IDLE",
+                   "confidence": 0.0,
+                   "needsClarification": false,
+                   "clarificationResolved": false,
+                   "clarificationQuestion": "",
+                   "intentScores": [{"intent":"<INTENT_CODE>","confidence":0.0}],
+                   "followups": []
+                 }
 
-INSERT INTO ce_config (config_id, config_type, config_key, config_value, enabled, created_at)
-VALUES (4, 'AgentIntentResolver', 'USER_PROMPT', ' Context:
+                 Rules:
+                 - Score all plausible intents and return them in intentScores sorted by confidence descending.
+                 - If top intents are close and ambiguous, set state to INTENT_COLLISION and needsClarification=true.
+                 - For INTENT_COLLISION, add one follow-up disambiguation question in followups.
+                 - If top intent is clear, set intent to best intent and confidence to best confidence.
+                 - If user input is question-like (what/where/when/why/how/which/who/help/details/required/needed),
+                   keep informational intents (like FAQ-style intents) in intentScores unless clearly impossible.
+                 - When a domain/task intent and informational intent are both plausible for a question, keep both with close scores;
+                   prefer INTENT_COLLISION instead of collapsing too early.
+                 - Use only allowed intents.
+                 - Do not hallucinate missing identifiers or facts.
+                 - Keep state non-null when possible.', 1),
+(4, 'AgentIntentResolver', 'USER_PROMPT', ' Context:
                 {{context}}
 
                 Allowed intents:
@@ -26,93 +46,12 @@ VALUES (4, 'AgentIntentResolver', 'USER_PROMPT', ' Context:
                 User input:
                 {{user_input}}
 
-                Return JSON in the required schema only.', 1, '2026-02-10 10:15:54.230')
-ON CONFLICT(config_type, config_key) DO UPDATE SET
-  config_value = excluded.config_value,
-  enabled = excluded.enabled,
-  created_at = excluded.created_at;
-
-INSERT INTO ce_config (config_id, config_type, config_key, config_value, enabled, created_at)
-VALUES (9, 'McpPlanner', 'USER_PROMPT', '
-User input:
-{{user_input}}
-
-Context JSON:
-{{context}}
-
-Available MCP tools:
-{{mcp_tools}}
-
-Existing MCP observations (if any):
-{{mcp_observations}}
-
-Return JSON EXACTLY in this schema:
-{
-  "action": "CALL_TOOL" | "ANSWER",
-  "tool_code": "<tool_code_or_null>",
-  "args": { },
-  "answer": "<text_or_null>"
-}
-', 1, '2026-02-10 10:15:54.230')
-ON CONFLICT(config_type, config_key) DO UPDATE SET
-  config_value = excluded.config_value,
-  enabled = excluded.enabled,
-  created_at = excluded.created_at;
-
-INSERT INTO ce_config (config_id, config_type, config_key, config_value, enabled, created_at)
-VALUES (3, 'AgentIntentResolver', 'SYSTEM_PROMPT', 'You are an intent resolution agent for a conversational engine.
-        You are a JSON generator. You must output valid JSON only. Do not include any explanations, greetings, or markdown formatting. Only return the JSON object.
-                 Return JSON ONLY with fields:
-                 {
-                   "intent": "<INTENT_CODE_OR_NULL>",
-                   "state": "INTENT_COLLISION | IDLE",
-                   "confidence": 0.0,
-                   "needsClarification": false,
-                   "clarificationResolved": false,
-                   "clarificationQuestion": "",
-                   "intentScores": [{"intent":"<INTENT_CODE>","confidence":0.0}],
-                   "followups": []
-                 }
-                CHAIN-OF-THOUGHT POLICY:
-- Do NOT reveal chain-of-thought.
-- Do NOT explain how you reached the answer.
-- Summaries, reasoning, or internal thoughts are forbidden.
-                 Rules:
-CRITICAL OUTPUT RULES:
-- DO NOT include reasoning, thoughts, or analysis.
-- DO NOT use <think> tags or similar.
-- Return ONLY valid JSON.
-- intent MUST be the intent CODE, not an id or priority.
-- confidence MUST be between 0.0 and 1.0.
-- clarificationQuestion MUST be null when needsClarification=false.
-                 - Score all plausible intents and return them in intentScores sorted by confidence descending.
-                 - If top intents are close and ambiguous, set state to INTENT_COLLISION and needsClarification=true.
-                 - For INTENT_COLLISION, add one follow-up disambiguation question in followups.
-                 - If top intent is clear, set intent to best intent and confidence to best confidence.
-                 - If user input is question-like (what/where/when/why/how/which/who/help/details/required/needed),
-                   keep informational intents (like FAQ-style intents) in intentScores unless clearly impossible.
-                 - When a domain/task intent and informational intent are both plausible for a question, keep both with close scores;
-                   prefer INTENT_COLLISION instead of collapsing too early.
-                 - Use only allowed intents.
-                 - Do not hallucinate missing identifiers or facts.
-                 - Keep state non-null when possible.', 1, '2026-02-10 10:15:54.230')
-ON CONFLICT(config_type, config_key) DO UPDATE SET
-  config_value = excluded.config_value,
-  enabled = excluded.enabled,
-  created_at = excluded.created_at;
-
-INSERT INTO ce_config (config_id, config_type, config_key, config_value, enabled, created_at)
-VALUES (5, 'AgentIntentCollisionResolver', 'SYSTEM_PROMPT', 'You are a workflow assistant handling ambiguous intent collisions.
+                Return JSON in the required schema only.', 1),
+(5, 'AgentIntentCollisionResolver', 'SYSTEM_PROMPT', 'You are a workflow assistant handling ambiguous intent collisions.
 Use followups first when present.
 Ask one concise disambiguation question.
-If followups is empty, ask user to choose from top intents.', 1, '2026-02-10 10:15:54.230')
-ON CONFLICT(config_type, config_key) DO UPDATE SET
-  config_value = excluded.config_value,
-  enabled = excluded.enabled,
-  created_at = excluded.created_at;
-
-INSERT INTO ce_config (config_id, config_type, config_key, config_value, enabled, created_at)
-VALUES (6, 'AgentIntentCollisionResolver', 'USER_PROMPT', '
+If followups is empty, ask user to choose from top intents.', 1),
+(6, 'AgentIntentCollisionResolver', 'USER_PROMPT', '
 User message:
 {{user_input}}
 
@@ -127,29 +66,10 @@ Session:
 
 Context:
 {{context}}
-', 1, '2026-02-10 10:15:54.230')
-ON CONFLICT(config_type, config_key) DO UPDATE SET
-  config_value = excluded.config_value,
-  enabled = excluded.enabled,
-  created_at = excluded.created_at;
-
-INSERT INTO ce_config (config_id, config_type, config_key, config_value, enabled, created_at)
-VALUES (7, 'AgentIntentCollisionResolver', 'DERIVATION_HINT', 'When multiple intents have similar scores, derive a new intent to disambiguate.
-                Consider followup questions, top intent scores, and conversation history.', 1, '2026-02-10 10:15:54.230')
-ON CONFLICT(config_type, config_key) DO UPDATE SET
-  config_value = excluded.config_value,
-  enabled = excluded.enabled,
-  created_at = excluded.created_at;
-
-INSERT INTO ce_config (config_id, config_type, config_key, config_value, enabled, created_at)
-VALUES (2, 'AgentIntentResolver', 'COLLISION_GAP_THRESHOLD', '0.2', 1, '2026-02-10 10:15:54.230')
-ON CONFLICT(config_type, config_key) DO UPDATE SET
-  config_value = excluded.config_value,
-  enabled = excluded.enabled,
-  created_at = excluded.created_at;
-
-INSERT INTO ce_config (config_id, config_type, config_key, config_value, enabled, created_at)
-VALUES (8, 'McpPlanner', 'SYSTEM_PROMPT', '
+', 1),
+(7, 'AgentIntentCollisionResolver', 'DERIVATION_HINT', 'When multiple intents have similar scores, derive a new intent to disambiguate.
+                Consider followup questions, top intent scores, and conversation history.', 1),
+(8, 'McpPlanner', 'SYSTEM_PROMPT', '
 You are an MCP planning agent inside ConvEngine.
 
 You will receive:
@@ -171,18 +91,59 @@ Rules:
 - If user question is ambiguous, return ANSWER with an answer that asks ONE clarifying question.
 
 Return JSON ONLY.
-', 1, '2026-02-10 10:15:54.230')
-ON CONFLICT(config_type, config_key) DO UPDATE SET
-  config_value = excluded.config_value,
-  enabled = excluded.enabled,
-  created_at = excluded.created_at;
+', 1),
+(9, 'McpPlanner', 'USER_PROMPT', '
+User input:
+{{user_input}}
 
-INSERT INTO ce_config (config_id, config_type, config_key, config_value, enabled, created_at)
-VALUES (101, 'IntentResolutionStep', 'STICKY_INTENT', 'true', 1, '2026-02-17 00:30:05.741')
+Context JSON:
+{{context}}
+
+Available MCP tools:
+{{mcp_tools}}
+
+Existing MCP observations (if any):
+{{mcp_observations}}
+
+Return JSON EXACTLY in this schema:
+{
+  "action": "CALL_TOOL" | "ANSWER",
+  "tool_code": "<tool_code_or_null>",
+  "args": { },
+  "answer": "<text_or_null>"
+}
+', 1),
+(10, 'IntentResolutionStep', 'STICKY_INTENT', 'true', 1),
+(11, 'DialogueActStep', 'SYSTEM_PROMPT', 'You are a dialogue-act classifier.
+Return JSON only with:
+{"dialogueAct":"AFFIRM|NEGATE|EDIT|RESET|QUESTION|NEW_REQUEST","confidence":0.0}', 1),
+(12, 'DialogueActStep', 'USER_PROMPT', 'User text:
+%s', 1),
+(13, 'DialogueActStep', 'SCHEMA_PROMPT', '{
+  "type":"object",
+  "required":["dialogueAct","confidence"],
+  "properties":{
+    "dialogueAct":{"type":"string","enum":["AFFIRM","NEGATE","EDIT","RESET","QUESTION","NEW_REQUEST"]},
+    "confidence":{"type":"number"}
+  },
+  "additionalProperties":false
+}', 1)
 ON CONFLICT(config_type, config_key) DO UPDATE SET
-  config_value = excluded.config_value,
+    config_value = excluded.config_value,
+    enabled = excluded.enabled,
+    created_at = excluded.created_at;
+
+
+INSERT INTO ce_mcp_tool (tool_id, tool_code, tool_group, intent_code, state_code, enabled, description)
+VALUES
+  (1, 'postgres.schema', 'DB', NULL, NULL, 1, 'List table/column metadata'),
+  (2, 'postgres.query', 'DB', NULL, NULL, 1, 'Run safe parameterized SQL query')
+ON CONFLICT(tool_code) DO UPDATE SET
+  tool_group = excluded.tool_group,
+  intent_code = excluded.intent_code,
+  state_code = excluded.state_code,
   enabled = excluded.enabled,
-  created_at = excluded.created_at;
+  description = excluded.description;
 
 DELETE FROM ce_rule WHERE intent_code = 'MAPPING_STUDIO';
 DELETE FROM ce_response WHERE intent_code = 'MAPPING_STUDIO';

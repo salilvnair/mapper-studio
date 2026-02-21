@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS ce_config (
   config_key TEXT NOT NULL,
   config_value TEXT NOT NULL,
   enabled INTEGER NOT NULL DEFAULT 1,
-  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now'))
 );
 CREATE UNIQUE INDEX IF NOT EXISTS ux_ce_config_type_key ON ce_config (config_type, config_key);
 
@@ -17,7 +17,7 @@ CREATE TABLE IF NOT EXISTS ce_intent (
   description TEXT NOT NULL,
   priority INTEGER NOT NULL DEFAULT 100,
   enabled INTEGER NOT NULL DEFAULT 1,
-  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now')),
   display_name TEXT,
   llm_hint TEXT
 );
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS ce_prompt_template (
   user_prompt TEXT NOT NULL,
   temperature REAL NOT NULL DEFAULT 0.0,
   enabled INTEGER NOT NULL DEFAULT 1,
-  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now'))
 );
 CREATE INDEX IF NOT EXISTS idx_ce_prompt_template_lookup ON ce_prompt_template (response_type, intent_code, state_code, enabled);
 
@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS ce_response (
   priority INTEGER NOT NULL DEFAULT 100,
   enabled INTEGER NOT NULL DEFAULT 1,
   description TEXT,
-  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now'))
 );
 CREATE INDEX IF NOT EXISTS idx_ce_response_intent_state ON ce_response (intent_code, state_code, enabled, priority);
 CREATE INDEX IF NOT EXISTS idx_ce_response_lookup ON ce_response (state_code, enabled, priority);
@@ -87,7 +87,7 @@ CREATE TABLE IF NOT EXISTS ce_rule (
   priority INTEGER NOT NULL DEFAULT 100,
   enabled INTEGER NOT NULL DEFAULT 1,
   description TEXT,
-  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now'))
 );
 CREATE INDEX IF NOT EXISTS idx_ce_rule_priority ON ce_rule (enabled, phase, state_code, priority);
 
@@ -99,7 +99,7 @@ CREATE TABLE IF NOT EXISTS ce_policy (
   priority INTEGER NOT NULL DEFAULT 10,
   enabled INTEGER NOT NULL DEFAULT 1,
   description TEXT,
-  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now'))
 );
 CREATE INDEX IF NOT EXISTS idx_ce_policy_priority ON ce_policy (enabled, priority);
 
@@ -112,8 +112,8 @@ CREATE TABLE IF NOT EXISTS ce_conversation (
   last_user_text TEXT,
   last_assistant_json TEXT,
   input_params_json TEXT NOT NULL DEFAULT '{}',
-  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now')),
+  updated_at DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now'))
 );
 CREATE INDEX IF NOT EXISTS idx_ce_conversation_status ON ce_conversation (status);
 CREATE INDEX IF NOT EXISTS idx_ce_conversation_updated ON ce_conversation (updated_at);
@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS ce_audit (
   conversation_id TEXT NOT NULL,
   stage TEXT NOT NULL,
   payload_json TEXT NOT NULL,
-  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now')),
   FOREIGN KEY(conversation_id) REFERENCES ce_conversation(conversation_id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_ce_audit_conversation ON ce_audit (conversation_id, created_at DESC);
@@ -136,22 +136,10 @@ CREATE TABLE IF NOT EXISTS ce_conversation_history (
   stage TEXT NOT NULL,
   content_text TEXT,
   payload_json TEXT NOT NULL,
-  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now')),
   FOREIGN KEY(conversation_id) REFERENCES ce_conversation(conversation_id) ON DELETE CASCADE
 );
 CREATE INDEX IF NOT EXISTS idx_ce_conversation_history_conv ON ce_conversation_history (conversation_id, created_at DESC);
-
-CREATE TABLE IF NOT EXISTS ce_validation_snapshot (
-  snapshot_id INTEGER PRIMARY KEY AUTOINCREMENT,
-  conversation_id TEXT NOT NULL,
-  intent_code TEXT,
-  state_code TEXT,
-  validation_tables TEXT,
-  validation_decision TEXT,
-  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  schema_id INTEGER
-);
-CREATE INDEX IF NOT EXISTS idx_ce_validation_snapshot_conv ON ce_validation_snapshot (conversation_id);
 
 CREATE TABLE IF NOT EXISTS ce_llm_call_log (
   llm_call_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -166,7 +154,7 @@ CREATE TABLE IF NOT EXISTS ce_llm_call_log (
   response_text TEXT,
   success INTEGER NOT NULL,
   error_message TEXT,
-  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now'))
 );
 CREATE INDEX IF NOT EXISTS idx_ce_llm_log_conversation ON ce_llm_call_log (conversation_id);
 CREATE INDEX IF NOT EXISTS idx_ce_llm_log_intent_state ON ce_llm_call_log (intent_code, state_code);
@@ -175,11 +163,13 @@ CREATE TABLE IF NOT EXISTS ce_mcp_tool (
   tool_id INTEGER PRIMARY KEY AUTOINCREMENT,
   tool_code TEXT NOT NULL UNIQUE,
   tool_group TEXT NOT NULL,
+  intent_code TEXT,
+  state_code TEXT,
   enabled INTEGER NOT NULL DEFAULT 1,
   description TEXT,
-  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now'))
 );
-CREATE INDEX IF NOT EXISTS idx_ce_mcp_tool_enabled ON ce_mcp_tool (enabled, tool_group, tool_code);
+CREATE INDEX IF NOT EXISTS idx_ce_mcp_tool_enabled ON ce_mcp_tool (enabled, intent_code, state_code, tool_group, tool_code);
 
 CREATE TABLE IF NOT EXISTS ce_mcp_db_tool (
   tool_id INTEGER PRIMARY KEY,
@@ -188,7 +178,7 @@ CREATE TABLE IF NOT EXISTS ce_mcp_db_tool (
   param_schema TEXT NOT NULL,
   safe_mode INTEGER NOT NULL DEFAULT 1,
   max_rows INTEGER NOT NULL DEFAULT 200,
-  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  created_at DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now')),
   allowed_identifiers TEXT,
   FOREIGN KEY(tool_id) REFERENCES ce_mcp_tool(tool_id) ON DELETE CASCADE
 );
@@ -204,9 +194,24 @@ CREATE TABLE IF NOT EXISTS ce_container_config (
   input_param_name TEXT NOT NULL,
   priority INTEGER NOT NULL DEFAULT 1,
   enabled INTEGER NOT NULL DEFAULT 1,
-  created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+  created_at DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now'))
 );
 CREATE INDEX IF NOT EXISTS idx_ce_validation_config_lookup ON ce_container_config (intent_code, state_code, enabled, priority);
+
+CREATE TABLE IF NOT EXISTS ce_pending_action (
+                                   pending_action_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                                   intent_code TEXT,
+                                   state_code TEXT,
+                                   action_key TEXT NOT NULL,
+                                   bean_name TEXT NOT NULL,
+                                   method_names TEXT NOT NULL,
+                                   priority INTEGER NOT NULL DEFAULT 100,
+                                   enabled BOOLEAN NOT NULL DEFAULT 1,
+                                   description TEXT,
+                                   created_at DATETIME NOT NULL DEFAULT (strftime('%Y-%m-%d %H:%M:%f', 'now'))
+);
+CREATE INDEX IF NOT EXISTS idx_ce_pending_action_lookup ON ce_pending_action (enabled, action_key, intent_code, state_code, priority);
+
 
 -- ==================== MPS TABLES ====================
 

@@ -172,11 +172,13 @@ CREATE TABLE IF NOT EXISTS ce_mcp_tool (
   tool_id bigserial PRIMARY KEY,
   tool_code text NOT NULL UNIQUE,
   tool_group text NOT NULL,
+  intent_code text,
+  state_code text,
   enabled boolean NOT NULL DEFAULT true,
   description text,
   created_at timestamptz NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS idx_ce_mcp_tool_enabled ON ce_mcp_tool (enabled, tool_group, tool_code);
+CREATE INDEX IF NOT EXISTS idx_ce_mcp_tool_enabled ON ce_mcp_tool (enabled, intent_code, state_code, tool_group, tool_code);
 
 CREATE TABLE IF NOT EXISTS ce_mcp_db_tool (
   tool_id bigint PRIMARY KEY,

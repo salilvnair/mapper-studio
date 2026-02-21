@@ -33,14 +33,14 @@ ON CONFLICT (config_type, config_key) DO UPDATE SET
   created_at = EXCLUDED.created_at;
 
 INSERT INTO ce_config (config_id, config_type, config_key, config_value, enabled, created_at)
-VALUES (9, 'McpPlanner', 'USER_PROMPT', $$
+VALUES (9, 'McpPlanner', 'DB_USER_PROMPT', $$
 User input:
 {{user_input}}
 
 Context JSON:
 {{context}}
 
-Available MCP tools:
+Available MCP DB tools:
 {{mcp_tools}}
 
 Existing MCP observations (if any):
@@ -149,26 +149,27 @@ ON CONFLICT (config_type, config_key) DO UPDATE SET
   created_at = EXCLUDED.created_at;
 
 INSERT INTO ce_config (config_id, config_type, config_key, config_value, enabled, created_at)
-VALUES (8, 'McpPlanner', 'SYSTEM_PROMPT', $$
-You are an MCP planning agent inside ConvEngine.
+VALUES (8, 'McpPlanner', 'DB_SYSTEM_PROMPT', $$
+You are an MCP DB planning agent inside ConvEngine.
 
 You will receive:
 - user_input
 - contextJson (may contain prior tool observations)
-- available tools (DB-driven list)
+- available MCP DB tools (from ce_mcp_tool + ce_mcp_db_tool)
 
 Your job:
 1) Decide the next step:
-   - CALL_TOOL (choose a tool_code and args)
+   - CALL_TOOL (choose a DB tool_code and args)
    - ANSWER (when enough observations exist)
 2) Be conservative and safe.
-3) Prefer getting schema first if schema is missing AND the question needs DB knowledge.
+3) Prefer getting DB schema first if schema is missing AND the question needs DB knowledge.
 
 Rules:
 - Never invent tables/columns. If unknown, call postgres.schema first.
 - For postgres.query, choose identifiers only if schema observation confirms them.
 - Keep args minimal.
 - If user question is ambiguous, return ANSWER with an answer that asks ONE clarifying question.
+- Do not plan non-DB tools in this planner.
 
 Return JSON ONLY.
 $$, true, '2026-02-10 10:15:54.230')
@@ -183,6 +184,31 @@ ON CONFLICT (config_type, config_key) DO UPDATE SET
   config_value = EXCLUDED.config_value,
   enabled = EXCLUDED.enabled,
   created_at = EXCLUDED.created_at;
+
+INSERT INTO ce_config (config_id, config_type, config_key, config_value, enabled, created_at)
+VALUES (102, 'DialogueActStep', 'convengine.dialogue.act.resolute', 'REGEX_THEN_LLM', true, '2026-02-20 10:00:00.000')
+ON CONFLICT (config_type, config_key) DO UPDATE SET
+  config_value = EXCLUDED.config_value,
+  enabled = EXCLUDED.enabled,
+  created_at = EXCLUDED.created_at;
+
+INSERT INTO ce_config (config_id, config_type, config_key, config_value, enabled, created_at)
+VALUES (103, 'DialogueActStep', 'convengine.dialogue.act.llm.threshold', '0.90', true, '2026-02-20 10:00:00.000')
+ON CONFLICT (config_type, config_key) DO UPDATE SET
+  config_value = EXCLUDED.config_value,
+  enabled = EXCLUDED.enabled,
+  created_at = EXCLUDED.created_at;
+
+INSERT INTO ce_mcp_tool (tool_id, tool_code, tool_group, intent_code, state_code, enabled, description, created_at)
+VALUES
+  (1, 'postgres.schema', 'DB', null, null, true, 'List table/column metadata', now()),
+  (2, 'postgres.query', 'DB', null, null, true, 'Run safe parameterized SQL query', now())
+ON CONFLICT (tool_code) DO UPDATE SET
+  tool_group = EXCLUDED.tool_group,
+  intent_code = EXCLUDED.intent_code,
+  state_code = EXCLUDED.state_code,
+  enabled = EXCLUDED.enabled,
+  description = EXCLUDED.description;
 
 DELETE FROM ce_rule WHERE intent_code = 'MAPPING_STUDIO';
 DELETE FROM ce_response WHERE intent_code = 'MAPPING_STUDIO';
