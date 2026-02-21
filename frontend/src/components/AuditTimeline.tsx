@@ -29,7 +29,7 @@ const STAGE_META: Record<string, StageMeta> = {
   MEMORY_UPDATED: { icon: "🧠", color: "border-violet-500" },
   INTENT_MISSING: { icon: "🫥", color: "border-rose-500" },
   STATE_MISSING: { icon: "🫥", color: "border-rose-500" },
-  PROMPT_RENDERING: { icon: "📝", color: "border-rose-500" },
+  PROMPT_RENDERING: { icon: "✨📄", color: "border-rose-500" },
 
   INTENT_RESOLVE_START: { icon: "🧭", color: "border-indigo-500" },
   INTENT_RESOLVE_SKIPPED_SCHEMA_COLLECTION: { icon: "⏭️", color: "border-slate-500" },
